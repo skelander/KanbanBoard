@@ -9,6 +9,18 @@ function authHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+function decodeTokenPayload(): Record<string, string> | null {
+  const token = getToken()
+  if (!token) return null
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    return JSON.parse(atob(payload))
+  } catch {
+    return null
+  }
+}
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     method,
@@ -39,6 +51,18 @@ export const api = {
   isLoggedIn(): boolean {
     return !!getToken()
   },
+  isAdmin(): boolean {
+    const payload = decodeTokenPayload()
+    if (!payload) return false
+    const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
+    return role === 'admin'
+  },
+
+  // Users (admin)
+  getUsers: () => request<User[]>('GET', '/auth/users'),
+  createUser: (data: { username: string; password: string; role: string }) =>
+    request<User>('POST', '/auth/users', data),
+  deleteUser: (id: number) => request<void>('DELETE', `/auth/users/${id}`),
 
   // Boards
   getBoards: () => request<Board[]>('GET', '/boards'),
@@ -67,6 +91,12 @@ export const api = {
 }
 
 // Types
+export interface User {
+  id: number
+  username: string
+  role: string
+}
+
 export interface Board {
   id: number
   name: string

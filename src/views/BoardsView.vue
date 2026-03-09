@@ -2,7 +2,10 @@
   <div class="min-h-screen bg-gray-100">
     <nav class="bg-white shadow px-6 py-3 flex items-center justify-between">
       <h1 class="text-xl font-bold text-gray-800">My Boards</h1>
-      <button @click="logout" class="text-sm text-gray-500 hover:text-gray-700">Log out</button>
+      <div class="flex items-center gap-4">
+        <router-link v-if="isAdmin" to="/admin" class="text-sm text-blue-600 hover:text-blue-800">Admin</router-link>
+        <button @click="logout" class="text-sm text-gray-500 hover:text-gray-700">Log out</button>
+      </div>
     </nav>
 
     <div class="max-w-4xl mx-auto py-8 px-4">
@@ -55,6 +58,7 @@ import { useRouter } from 'vue-router'
 import { api, type Board } from '@/services/api'
 
 const router = useRouter()
+const isAdmin = api.isAdmin()
 const boards = ref<Board[]>([])
 const newBoardName = ref('')
 const loading = ref(false)
