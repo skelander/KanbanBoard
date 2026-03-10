@@ -191,7 +191,7 @@ async function addCard(columnId: number, title: string) {
   try {
     const card = await api.createCard(boardId.value, columnId, { title })
     const col = board.value!.columns.find((c) => c.id === columnId)
-    col?.cards.push(card)
+    if (col) col.cards = [...col.cards, card]
   } catch {
     error.value = 'Failed to add card'
   }
