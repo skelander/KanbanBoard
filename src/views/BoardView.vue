@@ -244,9 +244,8 @@ async function deleteColumn(columnId: number) {
 
 async function addCard(columnId: number, title: string) {
   try {
-    const card = await api.createCard(boardId.value, columnId, { title })
-    const col = board.value!.columns.find((c) => c.id === columnId)
-    if (col) col.cards = [...col.cards, card]
+    await api.createCard(boardId.value, columnId, { title })
+    board.value = await api.getBoard(boardId.value)
   } catch {
     error.value = 'Failed to add card'
   }
