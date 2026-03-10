@@ -28,6 +28,7 @@
     </div>
 
     <VueDraggable
+      :key="localCards.length"
       v-model="localCards"
       :animation="150"
       group="cards"
@@ -49,7 +50,7 @@
         v-if="adding"
         ref="addInput"
         v-model="newCardTitle"
-        @blur="cancelAdd"
+        @blur="onBlurAdd"
         @keyup.escape="cancelAdd"
         placeholder="Card title…"
         class="w-full text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
@@ -107,6 +108,14 @@ function startAdd() {
 function cancelAdd() {
   adding.value = false
   newCardTitle.value = ''
+}
+
+function onBlurAdd() {
+  if (newCardTitle.value.trim()) {
+    addCard()
+  } else {
+    cancelAdd()
+  }
 }
 
 function addCard() {
