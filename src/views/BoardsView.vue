@@ -78,9 +78,9 @@ async function loadBoards() {
 async function createBoard() {
   if (!newBoardName.value.trim()) return
   try {
-    const board = await api.createBoard({ name: newBoardName.value.trim() })
+    await api.createBoard({ name: newBoardName.value.trim() })
     newBoardName.value = ''
-    router.push(`/boards/${board.id}`)
+    await loadBoards()
   } catch {
     error.value = 'Failed to create board'
   }
