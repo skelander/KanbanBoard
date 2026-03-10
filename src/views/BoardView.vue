@@ -70,7 +70,7 @@
     <div class="flex gap-4 p-6 overflow-x-auto flex-1 items-start">
       <KanbanColumn
         v-for="col in sortedColumns"
-        :key="col.id"
+        :key="`${col.id}-${col.cards.length}`"
         :column="col"
         @delete="deleteColumn"
         @rename="renameColumn"
