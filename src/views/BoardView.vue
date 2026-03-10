@@ -3,6 +3,51 @@
     <nav class="bg-white shadow px-6 py-3 flex items-center gap-4">
       <button @click="$router.push('/boards')" class="text-gray-500 hover:text-gray-700 text-sm">← Boards</button>
       <h1 class="text-xl font-bold text-gray-800 flex-1">{{ board?.name }}</h1>
+      <div class="relative" v-if="isAdmin">
+        <button
+          @click="membersOpen = !membersOpen"
+          class="text-sm text-gray-500 hover:text-gray-700"
+        >Members ({{ board?.members.length ?? 0 }})</button>
+        <div
+          v-if="membersOpen"
+          class="absolute right-0 top-8 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-72 z-10"
+        >
+          <h3 class="font-semibold text-gray-700 text-sm mb-3">Board members</h3>
+          <ul class="space-y-1 mb-3">
+            <li
+              v-for="member in board?.members"
+              :key="member.id"
+              class="flex items-center justify-between text-sm"
+            >
+              <span class="text-gray-800">{{ member.username }}</span>
+              <button
+                v-if="member.id !== board?.ownerId"
+                @click="removeMember(member.id)"
+                class="text-gray-400 hover:text-red-500 transition text-xs"
+              >✕</button>
+            </li>
+          </ul>
+          <div class="border-t border-gray-100 pt-3" v-if="nonMembers.length > 0">
+            <p class="text-xs text-gray-500 mb-1">Add member</p>
+            <select
+              v-model="selectedUserId"
+              class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+            >
+              <option value="" disabled>Select user…</option>
+              <option
+                v-for="user in nonMembers"
+                :key="user.id"
+                :value="user.id"
+              >{{ user.username }}</option>
+            </select>
+            <button
+              @click="addMember"
+              :disabled="!selectedUserId"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-1.5 rounded-lg transition disabled:opacity-50"
+            >Add</button>
+          </div>
+        </div>
+      </div>
       <button @click="logout" class="text-sm text-gray-500 hover:text-gray-700">Log out</button>
     </nav>
 
@@ -53,28 +98,60 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api, type Board, type Column } from '@/services/api'
+import { api, type Board, type Column, type User } from '@/services/api'
 import KanbanColumn from '@/components/KanbanColumn.vue'
 
 const route = useRoute()
 const router = useRouter()
 const boardId = computed(() => Number(route.params.id))
+const isAdmin = api.isAdmin()
 
 const board = ref<Board | null>(null)
 const error = ref('')
 const addingColumn = ref(false)
 const newColumnName = ref('')
 const colInput = ref<HTMLInputElement>()
+const membersOpen = ref(false)
+const allUsers = ref<User[]>([])
+const selectedUserId = ref<number | ''>('')
 
 const sortedColumns = computed<Column[]>(() =>
   board.value ? [...board.value.columns].sort((a, b) => a.position - b.position) : []
 )
 
+const nonMembers = computed<User[]>(() => {
+  if (!board.value) return []
+  const memberIds = new Set(board.value.members.map((m) => m.id))
+  return allUsers.value.filter((u) => !memberIds.has(u.id))
+})
+
 async function load() {
   try {
     board.value = await api.getBoard(boardId.value)
+    if (isAdmin) allUsers.value = await api.getUsers()
   } catch {
     error.value = 'Failed to load board'
+  }
+}
+
+async function addMember() {
+  if (!selectedUserId.value) return
+  try {
+    await api.addMember(boardId.value, selectedUserId.value)
+    const user = allUsers.value.find((u) => u.id === selectedUserId.value)
+    if (user) board.value!.members.push(user)
+    selectedUserId.value = ''
+  } catch {
+    error.value = 'Failed to add member'
+  }
+}
+
+async function removeMember(userId: number) {
+  try {
+    await api.removeMember(boardId.value, userId)
+    board.value!.members = board.value!.members.filter((m) => m.id !== userId)
+  } catch {
+    error.value = 'Failed to remove member'
   }
 }
 

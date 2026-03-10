@@ -70,6 +70,10 @@ export const api = {
     request<Board>('POST', '/boards', data),
   getBoard: (id: number) => request<Board>('GET', `/boards/${id}`),
   deleteBoard: (id: number) => request<void>('DELETE', `/boards/${id}`),
+  addMember: (boardId: number, userId: number) =>
+    request<void>('POST', `/boards/${boardId}/members`, { userId }),
+  removeMember: (boardId: number, userId: number) =>
+    request<void>('DELETE', `/boards/${boardId}/members/${userId}`),
 
   // Columns
   getColumns: (boardId: number) => request<Column[]>('GET', `/boards/${boardId}/columns`),
@@ -102,6 +106,8 @@ export interface Board {
   name: string
   description?: string
   ownerId: number
+  ownerUsername: string
+  members: User[]
   columns: Column[]
 }
 
