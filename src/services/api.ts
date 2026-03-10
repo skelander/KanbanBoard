@@ -75,16 +75,28 @@ export const api = {
   removeMember: (boardId: number, userId: number) =>
     request<void>('DELETE', `/boards/${boardId}/members/${userId}`),
 
+  // Boards (update)
+  updateBoard: (boardId: number, data: { name?: string; description?: string }) =>
+    request<Board>('PUT', `/boards/${boardId}`, data),
+
   // Columns
   getColumns: (boardId: number) => request<Column[]>('GET', `/boards/${boardId}/columns`),
   createColumn: (boardId: number, data: { name: string }) =>
     request<Column>('POST', `/boards/${boardId}/columns`, data),
+  updateColumn: (boardId: number, columnId: number, data: { name?: string }) =>
+    request<Column>('PUT', `/boards/${boardId}/columns/${columnId}`, data),
   deleteColumn: (boardId: number, columnId: number) =>
     request<void>('DELETE', `/boards/${boardId}/columns/${columnId}`),
 
   // Cards
   createCard: (boardId: number, columnId: number, data: { title: string; description?: string }) =>
     request<Card>('POST', `/boards/${boardId}/columns/${columnId}/cards`, data),
+  updateCard: (
+    boardId: number,
+    columnId: number,
+    cardId: number,
+    data: { title?: string; description?: string },
+  ) => request<Card>('PUT', `/boards/${boardId}/columns/${columnId}/cards/${cardId}`, data),
   moveCard: (boardId: number, columnId: number, cardId: number, targetColumnId: number, position: number) =>
     request<Card>('PUT', `/boards/${boardId}/columns/${columnId}/cards/${cardId}/move`, {
       targetColumnId,

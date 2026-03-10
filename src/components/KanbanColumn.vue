@@ -1,8 +1,22 @@
 <template>
   <div class="bg-gray-200 rounded-xl p-3 flex flex-col gap-2 min-w-64 max-w-64 shrink-0">
     <div class="flex items-center justify-between px-1">
-      <h3 class="font-semibold text-gray-700 text-sm">{{ column.name }}</h3>
-      <div class="flex items-center gap-2">
+      <input
+        v-if="renamingColumn"
+        ref="renameInput"
+        v-model="renameValue"
+        @keyup.enter="saveRename"
+        @keyup.escape="cancelRename"
+        @blur="saveRename"
+        class="font-semibold text-sm text-gray-700 border border-gray-400 rounded px-1 py-0.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 flex-1"
+      />
+      <h3
+        v-else
+        @click="startRename"
+        class="font-semibold text-gray-700 text-sm cursor-pointer hover:text-gray-900 truncate"
+        title="Click to rename"
+      >{{ column.name }}</h3>
+      <div class="flex items-center gap-2 shrink-0 ml-1">
         <span v-if="column.wipLimit" class="text-xs text-gray-500">
           {{ column.cards.length }}/{{ column.wipLimit }}
         </span>
@@ -25,6 +39,7 @@
         <KanbanCard
           :card="element"
           @delete="$emit('deleteCard', column.id, $event)"
+          @update="(id, title, desc) => $emit('editCard', column.id, id, title, desc)"
         />
       </template>
     </VueDraggable>
@@ -59,7 +74,9 @@ import type { Column, Card } from '@/services/api'
 const props = defineProps<{ column: Column }>()
 const emit = defineEmits<{
   delete: [columnId: number]
+  rename: [columnId: number, name: string]
   deleteCard: [columnId: number, cardId: number]
+  editCard: [columnId: number, cardId: number, title: string, description: string]
   addCard: [columnId: number, title: string]
   moveCard: [cardId: number, fromColumnId: number, toColumnId: number, position: number]
 }>()
@@ -67,6 +84,10 @@ const emit = defineEmits<{
 const adding = ref(false)
 const newCardTitle = ref('')
 const addInput = ref<HTMLInputElement>()
+
+const renamingColumn = ref(false)
+const renameValue = ref('')
+const renameInput = ref<HTMLInputElement>()
 
 const localCards = ref<Card[]>([...props.column.cards].sort((a, b) => a.position - b.position))
 
@@ -93,6 +114,24 @@ function addCard() {
   emit('addCard', props.column.id, newCardTitle.value.trim())
   newCardTitle.value = ''
   adding.value = false
+}
+
+function startRename() {
+  renameValue.value = props.column.name
+  renamingColumn.value = true
+  nextTick(() => renameInput.value?.focus())
+}
+
+function cancelRename() {
+  renamingColumn.value = false
+}
+
+function saveRename() {
+  const name = renameValue.value.trim()
+  if (name && name !== props.column.name) {
+    emit('rename', props.column.id, name)
+  }
+  renamingColumn.value = false
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

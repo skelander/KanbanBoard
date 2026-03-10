@@ -2,7 +2,21 @@
   <div class="min-h-screen bg-gray-100 flex flex-col">
     <nav class="bg-white shadow px-6 py-3 flex items-center gap-4">
       <button @click="$router.push('/boards')" class="text-gray-500 hover:text-gray-700 text-sm">← Boards</button>
-      <h1 class="text-xl font-bold text-gray-800 flex-1">{{ board?.name }}</h1>
+      <input
+        v-if="editingBoardName"
+        ref="boardNameInput"
+        v-model="editBoardName"
+        @keyup.enter="saveBoardName"
+        @keyup.escape="cancelEditBoardName"
+        @blur="saveBoardName"
+        class="text-xl font-bold text-gray-800 border-b border-gray-400 focus:outline-none bg-transparent flex-1"
+      />
+      <h1
+        v-else
+        @click="startEditBoardName"
+        class="text-xl font-bold text-gray-800 flex-1 cursor-pointer hover:text-gray-600"
+        title="Click to rename"
+      >{{ board?.name }}</h1>
       <div class="relative" v-if="isAdmin">
         <button
           @click="membersOpen = !membersOpen"
@@ -59,7 +73,9 @@
         :key="col.id"
         :column="col"
         @delete="deleteColumn"
+        @rename="renameColumn"
         @deleteCard="deleteCard"
+        @editCard="editCard"
         @addCard="addCard"
         @moveCard="moveCard"
       />
@@ -115,6 +131,10 @@ const membersOpen = ref(false)
 const allUsers = ref<User[]>([])
 const selectedUserId = ref<number | ''>('')
 
+const editingBoardName = ref(false)
+const editBoardName = ref('')
+const boardNameInput = ref<HTMLInputElement>()
+
 const sortedColumns = computed<Column[]>(() =>
   board.value ? [...board.value.columns].sort((a, b) => a.position - b.position) : []
 )
@@ -132,6 +152,31 @@ async function load() {
   } catch {
     error.value = 'Failed to load board'
   }
+}
+
+function startEditBoardName() {
+  editBoardName.value = board.value?.name ?? ''
+  editingBoardName.value = true
+  nextTick(() => boardNameInput.value?.focus())
+}
+
+function cancelEditBoardName() {
+  editingBoardName.value = false
+}
+
+async function saveBoardName() {
+  const name = editBoardName.value.trim()
+  if (!name || name === board.value?.name) {
+    cancelEditBoardName()
+    return
+  }
+  try {
+    await api.updateBoard(boardId.value, { name })
+    board.value!.name = name
+  } catch {
+    error.value = 'Failed to rename board'
+  }
+  cancelEditBoardName()
 }
 
 async function addMember() {
@@ -177,6 +222,16 @@ async function addColumn() {
   }
 }
 
+async function renameColumn(columnId: number, name: string) {
+  try {
+    await api.updateColumn(boardId.value, columnId, { name })
+    const col = board.value!.columns.find((c) => c.id === columnId)
+    if (col) col.name = name
+  } catch {
+    error.value = 'Failed to rename column'
+  }
+}
+
 async function deleteColumn(columnId: number) {
   if (!confirm('Delete this column and all its cards?')) return
   try {
@@ -197,6 +252,23 @@ async function addCard(columnId: number, title: string) {
   }
 }
 
+async function editCard(columnId: number, cardId: number, title: string, description: string) {
+  try {
+    const updated = await api.updateCard(boardId.value, columnId, cardId, { title, description })
+    const col = board.value!.columns.find((c) => c.id === columnId)
+    if (col) {
+      const idx = col.cards.findIndex((c) => c.id === cardId)
+      if (idx !== -1) {
+        const card = col.cards[idx]!
+        card.title = updated.title
+        card.description = updated.description
+      }
+    }
+  } catch {
+    error.value = 'Failed to update card'
+  }
+}
+
 async function deleteCard(columnId: number, cardId: number) {
   try {
     await api.deleteCard(boardId.value, columnId, cardId)
@@ -209,8 +281,7 @@ async function deleteCard(columnId: number, cardId: number) {
 
 async function moveCard(cardId: number, fromColumnId: number, toColumnId: number, position: number) {
   try {
-    const card = await api.moveCard(boardId.value, fromColumnId, cardId, toColumnId, position)
-    // Reload board to get consistent state
+    await api.moveCard(boardId.value, fromColumnId, cardId, toColumnId, position)
     board.value = await api.getBoard(boardId.value)
   } catch {
     error.value = 'Failed to move card'
