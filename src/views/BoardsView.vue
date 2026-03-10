@@ -9,7 +9,7 @@
     </nav>
 
     <div class="max-w-4xl mx-auto py-8 px-4">
-      <div class="flex items-center gap-3 mb-6">
+      <div v-if="isAdmin" class="flex items-center gap-3 mb-6">
         <input
           v-model="newBoardName"
           @keyup.enter="createBoard"
