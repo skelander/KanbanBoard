@@ -80,7 +80,6 @@
         :column="col"
         :createCard="(colId, title) => doCreateCard(colId, title)"
         @delete="deleteColumn"
-        @rename="renameColumn"
         @deleteCard="deleteCard"
         @editCard="editCard"
         @moveCard="moveCard"
@@ -236,15 +235,6 @@ async function addColumn() {
   }
 }
 
-async function renameColumn(columnId: number, name: string) {
-  try {
-    await api.updateColumn(boardId.value, columnId, { name })
-    const col = board.value!.columns.find((c) => c.id === columnId)
-    if (col) col.name = name
-  } catch {
-    error.value = 'Failed to rename column'
-  }
-}
 
 async function deleteColumn(columnId: number) {
   if (!confirm('Delete this column and all its cards?')) return
