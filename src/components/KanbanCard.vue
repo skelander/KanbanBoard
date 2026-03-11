@@ -16,7 +16,7 @@
         v-if="workItemAge !== null"
         class="text-xs px-1.5 py-0.5 rounded"
         :class="workItemAge >= 6 ? 'bg-red-100 text-red-600' : workItemAge >= 3 ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'"
-        :title="`In this column for ${workItemAge} day${workItemAge !== 1 ? 's' : ''}`"
+        :title="`Card age: ${workItemAge} day${workItemAge !== 1 ? 's' : ''}`"
       >{{ workItemAge === 0 ? 'today' : `${workItemAge}d` }}</span>
     </div>
   </div>
@@ -57,11 +57,11 @@ const emit = defineEmits<{
   update: [id: number, title: string, description: string]
 }>()
 
-// Days the card has been in its current column (open StateHistory entry)
+// Days since the card was created (first StateHistory entry)
 const workItemAge = computed<number | null>(() => {
-  const open = props.card.stateHistory.find(h => !h.exitedAt)
-  if (!open) return null
-  return Math.floor((Date.now() - new Date(open.enteredAt).getTime()) / 86_400_000)
+  const first = props.card.stateHistory.at(0)
+  if (!first) return null
+  return Math.floor((Date.now() - new Date(first.enteredAt).getTime()) / 86_400_000)
 })
 
 const editing = ref(false)
