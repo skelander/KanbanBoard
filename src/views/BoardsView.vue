@@ -41,7 +41,7 @@
           <div class="min-w-0">
             <h2 class="font-semibold text-slate-900 truncate">{{ board.name }}</h2>
             <p v-if="board.description" class="text-sm text-slate-500 mt-1 truncate">{{ board.description }}</p>
-            <p class="text-xs text-slate-400 mt-2">{{ board.members.length }} member{{ board.members.length !== 1 ? 's' : '' }}</p>
+            <p class="text-xs text-slate-400 mt-2">{{ board.memberCount }} member{{ board.memberCount !== 1 ? 's' : '' }}</p>
           </div>
           <button
             @click.stop="deleteBoard(board.id)"
@@ -56,11 +56,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { api, type Board } from '@/services/api'
+import { api, type BoardSummary } from '@/services/api'
 
 const router = useRouter()
 const isAdmin = api.isAdmin()
-const boards = ref<Board[]>([])
+const boards = ref<BoardSummary[]>([])
 const newBoardName = ref('')
 const loading = ref(false)
 const error = ref('')
@@ -91,7 +91,7 @@ async function deleteBoard(id: number) {
   if (!confirm('Delete this board?')) return
   try {
     await api.deleteBoard(id)
-    boards.value = boards.value.filter((b) => b.id !== id)
+    boards.value = boards.value.filter((b: BoardSummary) => b.id !== id)
   } catch {
     error.value = 'Failed to delete board'
   }

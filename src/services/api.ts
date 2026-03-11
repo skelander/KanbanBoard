@@ -65,7 +65,7 @@ export const api = {
   deleteUser: (id: number) => request<void>('DELETE', `/auth/users/${id}`),
 
   // Boards
-  getBoards: () => request<Board[]>('GET', '/boards'),
+  getBoards: () => request<BoardSummary[]>('GET', '/boards'),
   createBoard: (data: { name: string; description?: string }) =>
     request<Board>('POST', '/boards', data),
   getBoard: (id: number) => request<Board>('GET', `/boards/${id}`),
@@ -104,6 +104,15 @@ export const api = {
 }
 
 // Types
+export interface BoardSummary {
+  id: number
+  name: string
+  description?: string
+  ownerId: number
+  ownerUsername: string
+  memberCount: number
+}
+
 export interface User {
   id: number
   username: string
