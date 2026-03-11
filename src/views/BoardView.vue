@@ -1,7 +1,8 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex flex-col">
-    <nav class="bg-white shadow px-6 py-3 flex items-center gap-4">
-      <button @click="$router.push('/boards')" class="text-gray-500 hover:text-gray-700 text-sm">← Boards</button>
+  <div class="min-h-screen bg-slate-100 flex flex-col">
+    <nav class="bg-white border-b border-slate-200 px-5 h-14 flex items-center gap-3">
+      <button @click="$router.push('/boards')" class="text-slate-400 hover:text-slate-600 text-sm shrink-0">← Boards</button>
+      <span class="text-slate-200 shrink-0">|</span>
       <input
         v-if="editingBoardName"
         ref="boardNameInput"
@@ -9,77 +10,84 @@
         @keyup.enter="saveBoardName"
         @keyup.escape="cancelEditBoardName"
         @blur="saveBoardName"
-        class="text-xl font-bold text-gray-800 border-b border-gray-400 focus:outline-none bg-transparent flex-1"
+        class="text-base font-semibold text-slate-900 border-b border-slate-400 focus:outline-none bg-transparent flex-1 min-w-0"
       />
       <h1
         v-else
         @click="startEditBoardName"
-        class="text-xl font-bold text-gray-800 flex-1 cursor-pointer hover:text-gray-600"
+        class="text-base font-semibold text-slate-900 flex-1 min-w-0 truncate cursor-pointer hover:text-slate-600 transition"
         title="Click to rename"
       >{{ board?.name }}</h1>
-      <div class="relative" v-if="isAdmin">
-        <button
-          @click="membersOpen = !membersOpen"
-          class="text-sm text-gray-500 hover:text-gray-700"
-        >Members ({{ board?.members.length ?? 0 }})</button>
-        <div
-          v-if="membersOpen"
-          class="absolute right-0 top-8 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-72 z-10"
-        >
-          <h3 class="font-semibold text-gray-700 text-sm mb-3">Board members</h3>
-          <ul class="space-y-1 mb-3">
-            <li
-              v-for="member in board?.members"
-              :key="member.id"
-              class="flex items-center justify-between text-sm"
-            >
-              <span class="text-gray-800">{{ member.username }}</span>
+
+      <div class="flex items-center gap-1 ml-auto shrink-0">
+        <div class="relative" v-if="isAdmin">
+          <button
+            @click="membersOpen = !membersOpen"
+            class="text-sm text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition"
+          >Members <span class="text-slate-400">({{ board?.members.length ?? 0 }})</span></button>
+          <div
+            v-if="membersOpen"
+            class="absolute right-0 top-10 bg-white border border-slate-200 rounded-xl shadow-xl p-4 w-72 z-10"
+          >
+            <h3 class="font-semibold text-slate-800 text-sm mb-3">Board members</h3>
+            <ul class="space-y-1 mb-3">
+              <li
+                v-for="member in board?.members"
+                :key="member.id"
+                class="flex items-center justify-between text-sm py-0.5"
+              >
+                <span class="text-slate-700">{{ member.username }}</span>
+                <button
+                  v-if="member.id !== board?.ownerId"
+                  @click="removeMember(member.id)"
+                  class="text-slate-300 hover:text-red-400 transition text-xs"
+                >✕</button>
+              </li>
+            </ul>
+            <div class="border-t border-slate-100 pt-3" v-if="nonMembers.length > 0">
+              <p class="text-xs text-slate-500 mb-1.5">Add member</p>
+              <select
+                v-model="selectedUserId"
+                class="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+              >
+                <option value="" disabled>Select user…</option>
+                <option
+                  v-for="user in nonMembers"
+                  :key="user.id"
+                  :value="user.id"
+                >{{ user.username }}</option>
+              </select>
               <button
-                v-if="member.id !== board?.ownerId"
-                @click="removeMember(member.id)"
-                class="text-gray-400 hover:text-red-500 transition text-xs"
-              >✕</button>
-            </li>
-          </ul>
-          <div class="border-t border-gray-100 pt-3" v-if="nonMembers.length > 0">
-            <p class="text-xs text-gray-500 mb-1">Add member</p>
-            <select
-              v-model="selectedUserId"
-              class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
-            >
-              <option value="" disabled>Select user…</option>
-              <option
-                v-for="user in nonMembers"
-                :key="user.id"
-                :value="user.id"
-              >{{ user.username }}</option>
-            </select>
-            <button
-              @click="addMember"
-              :disabled="!selectedUserId"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-1.5 rounded-lg transition disabled:opacity-50"
-            >Add</button>
+                @click="addMember"
+                :disabled="!selectedUserId"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-1.5 rounded-lg transition disabled:opacity-40"
+              >Add</button>
+            </div>
           </div>
         </div>
+
+        <template v-if="isAdmin">
+          <span class="text-slate-200">|</span>
+          <button
+            @click="loadTestData"
+            :disabled="loadingTestData"
+            class="text-sm text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition disabled:opacity-40"
+          >{{ loadingTestData ? 'Loading…' : 'Sprint data' }}</button>
+          <button
+            @click="loadBacklogTestData"
+            :disabled="loadingTestData"
+            class="text-sm text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition disabled:opacity-40"
+          >{{ loadingTestData ? '…' : 'Backlog data' }}</button>
+        </template>
+
+        <span class="text-slate-200">|</span>
+        <button @click="logout" class="text-sm text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition">Log out</button>
       </div>
-      <button
-        v-if="isAdmin"
-        @click="loadTestData"
-        :disabled="loadingTestData"
-        class="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
-      >{{ loadingTestData ? 'Loading…' : 'Load sprint data' }}</button>
-      <button
-        v-if="isAdmin"
-        @click="loadBacklogTestData"
-        :disabled="loadingTestData"
-        class="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
-      >{{ loadingTestData ? 'Loading…' : 'Load backlog data' }}</button>
-      <button @click="logout" class="text-sm text-gray-500 hover:text-gray-700">Log out</button>
     </nav>
 
-    <p v-if="error" class="text-red-500 px-6 pt-4">{{ error }}</p>
+    <p v-if="error" class="text-red-600 text-sm bg-red-50 border border-red-200 mx-5 mt-4 px-3 py-2 rounded-lg">{{ error }}</p>
 
-    <div class="flex gap-4 p-6 overflow-x-auto flex-1 items-start">
+    <div class="flex gap-4 p-5 overflow-x-auto flex-1 items-start">
       <KanbanColumn
         v-for="col in sortedColumns"
         :key="col.id"
@@ -91,7 +99,6 @@
       />
     </div>
 
-    <pre class="m-6 p-4 bg-black text-green-400 text-xs rounded-xl overflow-x-auto">{{ JSON.stringify(board, null, 2) }}</pre>
   </div>
 </template>
 

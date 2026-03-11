@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-gray-200 rounded-xl p-3 flex flex-col gap-2 min-w-64 max-w-64 shrink-0">
-    <div class="flex items-center justify-between px-1">
-      <h3 class="font-semibold text-gray-700 text-sm truncate">{{ column.name }}</h3>
-      <span v-if="column.wipLimit" class="text-xs font-medium shrink-0 ml-1" :class="atWipLimit ? 'text-red-500' : 'text-gray-500'">
+  <div class="bg-slate-200/70 rounded-xl p-3 flex flex-col gap-2 min-w-72 max-w-72 shrink-0">
+    <div class="flex items-center justify-between px-1 py-0.5">
+      <h3 class="font-semibold text-slate-700 text-sm truncate">{{ column.name }}</h3>
+      <span v-if="column.wipLimit" class="text-xs font-semibold shrink-0 ml-2 tabular-nums" :class="atWipLimit ? 'text-red-500' : 'text-slate-400'">
         {{ localCards.length }}/{{ column.wipLimit }}
       </span>
     </div>
@@ -11,7 +11,7 @@
       v-model="localCards"
       :animation="150"
       group="cards"
-      class="flex flex-col gap-2 min-h-8"
+      class="flex flex-col gap-2 min-h-10"
       @add="onAdd"
       @update="onUpdate"
     >
@@ -24,7 +24,7 @@
       />
     </VueDraggable>
 
-    <form @submit.prevent="submitAdd" class="mt-1">
+    <form @submit.prevent="submitAdd" class="mt-0.5">
       <input
         v-if="adding"
         ref="addInput"
@@ -32,13 +32,13 @@
         @blur="onBlurAdd"
         @keyup.escape="cancelAdd"
         placeholder="Card title…"
-        class="w-full text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+        class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-900 placeholder:text-slate-400"
       />
-      <p v-else-if="atWipLimit" class="text-xs text-red-400 px-1 py-1">WIP limit reached</p>
+      <p v-else-if="atWipLimit" class="text-xs text-red-400 px-2 py-1.5">WIP limit reached</p>
       <button
         v-else
         @click="startAdd"
-        class="w-full text-left text-sm text-gray-500 hover:text-gray-700 px-1 py-1 rounded hover:bg-gray-300 transition"
+        class="w-full text-left text-sm text-slate-500 hover:text-slate-700 px-2 py-1.5 rounded-lg hover:bg-slate-300/50 transition"
       >
         + Add card
       </button>
