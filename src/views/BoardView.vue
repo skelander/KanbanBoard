@@ -145,7 +145,12 @@ const editBoardName = ref('')
 const boardNameInput = ref<HTMLInputElement>()
 
 const sortedColumns = computed<Column[]>(() =>
-  board.value ? [...board.value.columns].sort((a, b) => a.position - b.position) : []
+  board.value
+    ? [...board.value.columns].sort((a, b) => {
+        if (a.isBacklog !== b.isBacklog) return a.isBacklog ? -1 : 1
+        return a.position - b.position
+      })
+    : []
 )
 
 const nonMembers = computed<User[]>(() => {

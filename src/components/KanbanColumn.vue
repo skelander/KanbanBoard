@@ -21,6 +21,7 @@
           {{ localCards.length }}/{{ column.wipLimit }}
         </span>
         <button
+          v-if="!column.isBacklog"
           @click="$emit('delete', column.id)"
           class="text-gray-400 hover:text-red-500 transition text-xs"
         >✕</button>

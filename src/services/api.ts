@@ -132,6 +132,7 @@ export interface Column {
   name: string
   position: number
   wipLimit?: number
+  isBacklog: boolean
   boardId: number
   cards: Card[]
 }
