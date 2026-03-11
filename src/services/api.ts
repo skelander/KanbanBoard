@@ -79,15 +79,6 @@ export const api = {
   updateBoard: (boardId: number, data: { name?: string; description?: string }) =>
     request<Board>('PUT', `/boards/${boardId}`, data),
 
-  // Columns
-  getColumns: (boardId: number) => request<Column[]>('GET', `/boards/${boardId}/columns`),
-  createColumn: (boardId: number, data: { name: string }) =>
-    request<Column>('POST', `/boards/${boardId}/columns`, data),
-  updateColumn: (boardId: number, columnId: number, data: { name?: string }) =>
-    request<Column>('PUT', `/boards/${boardId}/columns/${columnId}`, data),
-  deleteColumn: (boardId: number, columnId: number) =>
-    request<void>('DELETE', `/boards/${boardId}/columns/${columnId}`),
-
   // Cards
   createCard: (boardId: number, columnId: number, data: { title: string; description?: string }) =>
     request<Card>('POST', `/boards/${boardId}/columns/${columnId}/cards`, data),
