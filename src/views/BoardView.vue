@@ -62,6 +62,12 @@
           </div>
         </div>
       </div>
+      <button
+        v-if="isAdmin"
+        @click="loadTestData"
+        :disabled="loadingTestData"
+        class="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+      >{{ loadingTestData ? 'Loading…' : 'Load test data' }}</button>
       <button @click="logout" class="text-sm text-gray-500 hover:text-gray-700">Log out</button>
     </nav>
 
@@ -133,6 +139,7 @@ const membersOpen = ref(false)
 const allUsers = ref<User[]>([])
 const selectedUserId = ref<number | ''>('')
 
+const loadingTestData = ref(false)
 const editingBoardName = ref(false)
 const editBoardName = ref('')
 const boardNameInput = ref<HTMLInputElement>()
@@ -290,6 +297,19 @@ async function moveCard(cardId: number, fromColumnId: number, toColumnId: number
   } catch (e) {
     error.value = `Failed to move card: ${e instanceof Error ? e.message : String(e)}`
     board.value = await api.getBoard(boardId.value)
+  }
+}
+
+async function loadTestData() {
+  if (!confirm('Load a simulated two-week sprint onto this board?')) return
+  loadingTestData.value = true
+  try {
+    await api.loadTestData(boardId.value)
+    board.value = await api.getBoard(boardId.value)
+  } catch {
+    error.value = 'Failed to load test data'
+  } finally {
+    loadingTestData.value = false
   }
 }
 

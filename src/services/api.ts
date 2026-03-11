@@ -104,6 +104,10 @@ export const api = {
     }),
   deleteCard: (boardId: number, columnId: number, cardId: number) =>
     request<void>('DELETE', `/boards/${boardId}/columns/${columnId}/cards/${cardId}`),
+
+  // Test data
+  loadTestData: (boardId: number) =>
+    request<void>('POST', `/boards/${boardId}/testdata`),
 }
 
 // Types
