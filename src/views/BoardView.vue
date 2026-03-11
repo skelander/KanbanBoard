@@ -89,7 +89,7 @@
 
     <p v-if="error" class="text-red-600 text-sm bg-red-50 border border-red-200 mx-5 mt-4 px-3 py-2 rounded-lg">{{ error }}</p>
 
-    <pre v-if="debugOpen" class="mx-5 mt-4 p-4 bg-slate-900 text-green-400 text-xs rounded-xl overflow-x-auto">{{ JSON.stringify(board, null, 2) }}</pre>
+    <pre v-if="debugOpen" class="mx-5 mt-4 p-4 bg-slate-900 text-green-400 text-xs rounded-xl overflow-auto max-h-64 shrink-0">{{ JSON.stringify(board, null, 2) }}</pre>
 
     <div class="flex gap-4 p-5 overflow-x-auto flex-1 items-start">
       <KanbanColumn
