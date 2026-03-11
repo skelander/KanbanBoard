@@ -26,8 +26,10 @@
       @keyup.escape="cancelEdit"
       placeholder="Description (optional)…"
       rows="2"
-      class="w-full text-xs text-gray-600 border border-gray-300 rounded px-2 py-1 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+      maxlength="200"
+      class="w-full text-xs text-gray-600 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
     />
+    <p class="text-right text-xs mb-2" :class="editDescription.length >= 200 ? 'text-red-500' : 'text-gray-400'">{{ editDescription.length }}/200</p>
     <div class="flex gap-2">
       <button @click="saveEdit" class="text-xs bg-blue-600 text-white rounded px-3 py-1 hover:bg-blue-700 transition">Save</button>
       <button @click="cancelEdit" class="text-xs text-gray-500 hover:text-gray-700 transition">Cancel</button>
