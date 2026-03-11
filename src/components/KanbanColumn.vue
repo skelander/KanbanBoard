@@ -2,16 +2,9 @@
   <div class="bg-gray-200 rounded-xl p-3 flex flex-col gap-2 min-w-64 max-w-64 shrink-0">
     <div class="flex items-center justify-between px-1">
       <h3 class="font-semibold text-gray-700 text-sm truncate">{{ column.name }}</h3>
-      <div class="flex items-center gap-2 shrink-0 ml-1">
-        <span v-if="column.wipLimit" class="text-xs font-medium" :class="atWipLimit ? 'text-red-500' : 'text-gray-500'">
-          {{ localCards.length }}/{{ column.wipLimit }}
-        </span>
-        <button
-          v-if="!column.isBacklog"
-          @click="$emit('delete', column.id)"
-          class="text-gray-400 hover:text-red-500 transition text-xs"
-        >✕</button>
-      </div>
+      <span v-if="column.wipLimit" class="text-xs font-medium shrink-0 ml-1" :class="atWipLimit ? 'text-red-500' : 'text-gray-500'">
+        {{ localCards.length }}/{{ column.wipLimit }}
+      </span>
     </div>
 
     <VueDraggable
@@ -65,7 +58,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  delete: [columnId: number]
   deleteCard: [columnId: number, cardId: number]
   editCard: [columnId: number, cardId: number, title: string, description: string]
   moveCard: [cardId: number, fromColumnId: number, toColumnId: number, position: number]

@@ -79,39 +79,10 @@
         :key="col.id"
         :column="col"
         :createCard="(colId, title) => doCreateCard(colId, title)"
-        @delete="deleteColumn"
         @deleteCard="deleteCard"
         @editCard="editCard"
         @moveCard="moveCard"
       />
-
-      <div class="min-w-56 shrink-0">
-        <form @submit.prevent="addColumn" class="flex flex-col gap-2">
-          <input
-            v-if="addingColumn"
-            ref="colInput"
-            v-model="newColumnName"
-            @blur="cancelAddColumn"
-            @keyup.escape="cancelAddColumn"
-            placeholder="Column name…"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          />
-          <button
-            v-if="!addingColumn"
-            @click="startAddColumn"
-            class="bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-xl px-4 py-3 text-sm font-medium text-left transition"
-          >
-            + Add column
-          </button>
-          <button
-            v-else
-            type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-1.5 text-sm transition"
-          >
-            Add column
-          </button>
-        </form>
-      </div>
     </div>
 
     <pre class="m-6 p-4 bg-black text-green-400 text-xs rounded-xl overflow-x-auto">{{ JSON.stringify(board, null, 2) }}</pre>
@@ -131,9 +102,6 @@ const isAdmin = api.isAdmin()
 
 const board = ref<Board | null>(null)
 const error = ref('')
-const addingColumn = ref(false)
-const newColumnName = ref('')
-const colInput = ref<HTMLInputElement>()
 const membersOpen = ref(false)
 const allUsers = ref<User[]>([])
 const selectedUserId = ref<number | ''>('')
@@ -210,39 +178,6 @@ async function removeMember(userId: number) {
     board.value!.members = board.value!.members.filter((m) => m.id !== userId)
   } catch {
     error.value = 'Failed to remove member'
-  }
-}
-
-function startAddColumn() {
-  addingColumn.value = true
-  nextTick(() => colInput.value?.focus())
-}
-
-function cancelAddColumn() {
-  addingColumn.value = false
-  newColumnName.value = ''
-}
-
-async function addColumn() {
-  if (!newColumnName.value.trim()) return
-  try {
-    const col = await api.createColumn(boardId.value, { name: newColumnName.value.trim() })
-    col.cards = []
-    board.value!.columns.push(col)
-    cancelAddColumn()
-  } catch {
-    error.value = 'Failed to add column'
-  }
-}
-
-
-async function deleteColumn(columnId: number) {
-  if (!confirm('Delete this column and all its cards?')) return
-  try {
-    await api.deleteColumn(boardId.value, columnId)
-    board.value!.columns = board.value!.columns.filter((c) => c.id !== columnId)
-  } catch {
-    error.value = 'Failed to delete column'
   }
 }
 
