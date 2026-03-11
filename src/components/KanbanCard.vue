@@ -57,11 +57,13 @@ const emit = defineEmits<{
   update: [id: number, title: string, description: string]
 }>()
 
-// Days since the card was created (first StateHistory entry)
+// Days since the card left the backlog (first StateHistory exitedAt).
+// Returns 0 while the card is still in the backlog.
 const workItemAge = computed<number | null>(() => {
   const first = props.card.stateHistory[0]
   if (!first) return null
-  return Math.floor((Date.now() - new Date(first.enteredAt).getTime()) / 86_400_000)
+  if (!first.exitedAt) return 0
+  return Math.floor((Date.now() - new Date(first.exitedAt).getTime()) / 86_400_000)
 })
 
 const editing = ref(false)
