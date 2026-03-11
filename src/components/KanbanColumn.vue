@@ -27,6 +27,8 @@
       </div>
     </div>
 
+    <pre class="text-xs text-gray-500 bg-white rounded p-1">localCards({{ localCards.length }}): {{ localCards.map(c => c.title).join(', ') }}</pre>
+
     <VueDraggable
       :key="localCards.length"
       v-model="localCards"
