@@ -70,13 +70,13 @@
     <div class="flex gap-4 p-6 overflow-x-auto flex-1 items-start">
       <KanbanColumn
         v-for="col in sortedColumns"
-        :key="`${col.id}-${col.cards.length}`"
+        :key="col.id"
         :column="col"
+        :createCard="(colId, title) => doCreateCard(colId, title)"
         @delete="deleteColumn"
         @rename="renameColumn"
         @deleteCard="deleteCard"
         @editCard="editCard"
-        @addCard="addCard"
         @moveCard="moveCard"
       />
 
@@ -114,7 +114,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api, type Board, type Column, type User } from '@/services/api'
+import { api, type Board, type Column, type Card, type User } from '@/services/api'
 import KanbanColumn from '@/components/KanbanColumn.vue'
 
 const route = useRoute()
@@ -242,13 +242,12 @@ async function deleteColumn(columnId: number) {
   }
 }
 
-async function addCard(columnId: number, title: string) {
-  try {
-    await api.createCard(boardId.value, columnId, { title })
-    board.value = await api.getBoard(boardId.value)
-  } catch {
-    error.value = 'Failed to add card'
-  }
+async function doCreateCard(columnId: number, title: string): Promise<Card> {
+  const card = await api.createCard(boardId.value, columnId, { title })
+  // Keep board.value in sync so moves/refreshes see the new card
+  const col = board.value?.columns.find((c) => c.id === columnId)
+  if (col) col.cards = [...col.cards, card]
+  return card
 }
 
 async function editCard(columnId: number, cardId: number, title: string, description: string) {

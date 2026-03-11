@@ -18,7 +18,7 @@
       >{{ column.name }}</h3>
       <div class="flex items-center gap-2 shrink-0 ml-1">
         <span v-if="column.wipLimit" class="text-xs text-gray-500">
-          {{ column.cards.length }}/{{ column.wipLimit }}
+          {{ localCards.length }}/{{ column.wipLimit }}
         </span>
         <button
           @click="$emit('delete', column.id)"
@@ -45,7 +45,7 @@
       </template>
     </VueDraggable>
 
-    <form @submit.prevent="addCard" class="mt-1">
+    <form @submit.prevent="submitAdd" class="mt-1">
       <input
         v-if="adding"
         ref="addInput"
@@ -72,13 +72,16 @@ import { VueDraggable } from 'vue-draggable-plus'
 import KanbanCard from './KanbanCard.vue'
 import type { Column, Card } from '@/services/api'
 
-const props = defineProps<{ column: Column }>()
+const props = defineProps<{
+  column: Column
+  createCard: (columnId: number, title: string) => Promise<Card>
+}>()
+
 const emit = defineEmits<{
   delete: [columnId: number]
   rename: [columnId: number, name: string]
   deleteCard: [columnId: number, cardId: number]
   editCard: [columnId: number, cardId: number, title: string, description: string]
-  addCard: [columnId: number, title: string]
   moveCard: [cardId: number, fromColumnId: number, toColumnId: number, position: number]
 }>()
 
@@ -97,7 +100,6 @@ watch(
   (cards) => {
     localCards.value = [...cards].sort((a, b) => a.position - b.position)
   },
-  { deep: true },
 )
 
 function startAdd() {
@@ -110,19 +112,25 @@ function cancelAdd() {
   newCardTitle.value = ''
 }
 
-function onBlurAdd() {
-  if (newCardTitle.value.trim()) {
-    addCard()
-  } else {
-    cancelAdd()
+async function submitAdd() {
+  const title = newCardTitle.value.trim()
+  if (!title) return
+  newCardTitle.value = ''
+  adding.value = false
+  try {
+    const card = await props.createCard(props.column.id, title)
+    localCards.value = [...localCards.value, card].sort((a, b) => a.position - b.position)
+  } catch {
+    // parent handles error display
   }
 }
 
-function addCard() {
-  if (!newCardTitle.value.trim()) return
-  emit('addCard', props.column.id, newCardTitle.value.trim())
-  newCardTitle.value = ''
-  adding.value = false
+function onBlurAdd() {
+  if (newCardTitle.value.trim()) {
+    submitAdd()
+  } else {
+    cancelAdd()
+  }
 }
 
 function startRename() {
