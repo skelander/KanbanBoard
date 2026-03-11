@@ -32,7 +32,8 @@
       :animation="150"
       group="cards"
       class="flex flex-col gap-2 min-h-8"
-      @change="onChange"
+      @add="onAdd"
+      @update="onUpdate"
     >
       <KanbanCard
         v-for="card in localCards"
@@ -149,15 +150,18 @@ function saveRename() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function onChange(event: any) {
-  if (event.added) {
-    const card = event.added.element as Card
-    const position: number = event.added.newIndex
-    emit('moveCard', card.id, card.columnId, props.column.id, position)
-  } else if (event.moved) {
-    const card = event.moved.element as Card
-    const position: number = event.moved.newIndex
-    emit('moveCard', card.id, props.column.id, props.column.id, position)
-  }
+function onAdd(event: any) {
+  const position: number = event.newDraggableIndex
+  const card = localCards.value[position]
+  if (!card) return
+  emit('moveCard', card.id, card.columnId, props.column.id, position)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function onUpdate(event: any) {
+  const position: number = event.newDraggableIndex
+  const card = localCards.value[position]
+  if (!card) return
+  emit('moveCard', card.id, props.column.id, props.column.id, position)
 }
 </script>
