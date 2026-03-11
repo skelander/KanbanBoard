@@ -27,24 +27,20 @@
       </div>
     </div>
 
-    <pre class="text-xs text-gray-500 bg-white rounded p-1">localCards({{ localCards.length }}): {{ localCards.map(c => c.title).join(', ') }}</pre>
-
     <VueDraggable
-      :key="localCards.length"
       v-model="localCards"
       :animation="150"
       group="cards"
-      item-key="id"
       class="flex flex-col gap-2 min-h-8"
       @change="onChange"
     >
-      <template #item="{ element }">
-        <KanbanCard
-          :card="element"
-          @delete="$emit('deleteCard', column.id, $event)"
-          @update="(id, title, desc) => $emit('editCard', column.id, id, title, desc)"
-        />
-      </template>
+      <KanbanCard
+        v-for="card in localCards"
+        :key="card.id"
+        :card="card"
+        @delete="$emit('deleteCard', column.id, $event)"
+        @update="(id, title, desc) => $emit('editCard', column.id, id, title, desc)"
+      />
     </VueDraggable>
 
     <form @submit.prevent="submitAdd" class="mt-1">
@@ -120,8 +116,7 @@ async function submitAdd() {
   newCardTitle.value = ''
   adding.value = false
   try {
-    const card = await props.createCard(props.column.id, title)
-    localCards.value = [...localCards.value, card].sort((a, b) => a.position - b.position)
+    await props.createCard(props.column.id, title)
   } catch {
     // parent handles error display
   }
