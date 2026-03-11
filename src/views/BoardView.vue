@@ -108,6 +108,8 @@
         </form>
       </div>
     </div>
+
+    <pre class="m-6 p-4 bg-black text-green-400 text-xs rounded-xl overflow-x-auto">{{ JSON.stringify(board, null, 2) }}</pre>
   </div>
 </template>
 
