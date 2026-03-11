@@ -243,11 +243,15 @@ async function deleteColumn(columnId: number) {
 }
 
 async function doCreateCard(columnId: number, title: string): Promise<Card> {
-  const card = await api.createCard(boardId.value, columnId, { title })
-  // Keep board.value in sync so moves/refreshes see the new card
-  const col = board.value?.columns.find((c) => c.id === columnId)
-  if (col) col.cards = [...col.cards, card]
-  return card
+  try {
+    const card = await api.createCard(boardId.value, columnId, { title })
+    const col = board.value?.columns.find((c) => c.id === columnId)
+    if (col) col.cards = [...col.cards, card]
+    return card
+  } catch (e) {
+    error.value = `Failed to add card: ${e instanceof Error ? e.message : String(e)}`
+    throw e
+  }
 }
 
 async function editCard(columnId: number, cardId: number, title: string, description: string) {
