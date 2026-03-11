@@ -67,7 +67,13 @@
         @click="loadTestData"
         :disabled="loadingTestData"
         class="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
-      >{{ loadingTestData ? 'Loading…' : 'Load test data' }}</button>
+      >{{ loadingTestData ? 'Loading…' : 'Load sprint data' }}</button>
+      <button
+        v-if="isAdmin"
+        @click="loadBacklogTestData"
+        :disabled="loadingTestData"
+        class="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+      >{{ loadingTestData ? 'Loading…' : 'Load backlog data' }}</button>
       <button @click="logout" class="text-sm text-gray-500 hover:text-gray-700">Log out</button>
     </nav>
 
@@ -231,13 +237,26 @@ async function moveCard(cardId: number, fromColumnId: number, toColumnId: number
 }
 
 async function loadTestData() {
-  if (!confirm('Load a simulated two-week sprint onto this board?')) return
+  if (!confirm('Load a simulated two-week sprint onto this board? This will clear all existing cards.')) return
   loadingTestData.value = true
   try {
     await api.loadTestData(boardId.value)
     board.value = await api.getBoard(boardId.value)
   } catch {
     error.value = 'Failed to load test data'
+  } finally {
+    loadingTestData.value = false
+  }
+}
+
+async function loadBacklogTestData() {
+  if (!confirm('Load backlog items onto this board? This will clear all existing cards.')) return
+  loadingTestData.value = true
+  try {
+    await api.loadBacklogTestData(boardId.value)
+    board.value = await api.getBoard(boardId.value)
+  } catch {
+    error.value = 'Failed to load backlog data'
   } finally {
     loadingTestData.value = false
   }
