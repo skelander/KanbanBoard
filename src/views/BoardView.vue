@@ -287,8 +287,9 @@ async function moveCard(cardId: number, fromColumnId: number, toColumnId: number
   try {
     await api.moveCard(boardId.value, fromColumnId, cardId, toColumnId, position)
     board.value = await api.getBoard(boardId.value)
-  } catch {
-    error.value = 'Failed to move card'
+  } catch (e) {
+    error.value = `Failed to move card: ${e instanceof Error ? e.message : String(e)}`
+    board.value = await api.getBoard(boardId.value)
   }
 }
 

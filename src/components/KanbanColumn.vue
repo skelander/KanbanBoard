@@ -17,7 +17,7 @@
         title="Click to rename"
       >{{ column.name }}</h3>
       <div class="flex items-center gap-2 shrink-0 ml-1">
-        <span v-if="column.wipLimit" class="text-xs text-gray-500">
+        <span v-if="column.wipLimit" class="text-xs font-medium" :class="atWipLimit ? 'text-red-500' : 'text-gray-500'">
           {{ localCards.length }}/{{ column.wipLimit }}
         </span>
         <button
@@ -54,6 +54,7 @@
         placeholder="Card title…"
         class="w-full text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
       />
+      <p v-else-if="atWipLimit" class="text-xs text-red-400 px-1 py-1">WIP limit reached</p>
       <button
         v-else
         @click="startAdd"
@@ -66,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import KanbanCard from './KanbanCard.vue'
 import type { Column, Card } from '@/services/api'
@@ -93,6 +94,7 @@ const renameValue = ref('')
 const renameInput = ref<HTMLInputElement>()
 
 const localCards = ref<Card[]>([...props.column.cards].sort((a, b) => a.position - b.position))
+const atWipLimit = computed(() => !!props.column.wipLimit && localCards.value.length >= props.column.wipLimit)
 
 watch(
   () => props.column.cards,
