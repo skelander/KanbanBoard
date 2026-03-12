@@ -82,6 +82,7 @@
 
         <span class="text-slate-200">|</span>
         <button @click="debugOpen = !debugOpen" class="text-sm px-3 py-1.5 rounded-lg hover:bg-slate-100 transition" :class="debugOpen ? 'text-amber-600 font-medium' : 'text-slate-500 hover:text-slate-700'">JSON</button>
+        <button @click="analysisOpen = !analysisOpen" class="text-sm px-3 py-1.5 rounded-lg hover:bg-slate-100 transition" :class="analysisOpen ? 'text-blue-600 font-medium' : 'text-slate-500 hover:text-slate-700'">Analysis</button>
         <span class="text-slate-200">|</span>
         <button @click="logout" class="text-sm text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition">Log out</button>
       </div>
@@ -90,6 +91,10 @@
     <p v-if="error" class="text-red-600 text-sm bg-red-50 border border-red-200 mx-5 mt-4 px-3 py-2 rounded-lg">{{ error }}</p>
 
     <pre v-if="debugOpen" class="mx-5 mt-4 p-4 bg-slate-900 text-green-400 text-xs rounded-xl overflow-auto max-h-64 shrink-0">{{ JSON.stringify(board, null, 2) }}</pre>
+
+    <div v-if="analysisOpen" class="mx-5 mt-4 p-4 bg-white border border-slate-200 rounded-xl max-h-64 overflow-auto shrink-0">
+      <p class="text-sm text-slate-400 italic">Analysis coming soon…</p>
+    </div>
 
     <div class="flex gap-4 p-5 overflow-x-auto flex-1 items-start">
       <KanbanColumn
@@ -125,6 +130,7 @@ const selectedUserId = ref<number | ''>('')
 
 const loadingTestData = ref(false)
 const debugOpen = ref(false)
+const analysisOpen = ref(false)
 const editingBoardName = ref(false)
 const editBoardName = ref('')
 const boardNameInput = ref<HTMLInputElement>()
