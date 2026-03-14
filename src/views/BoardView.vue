@@ -99,13 +99,29 @@
 
     <div v-if="analysisOpen" class="mx-5 mt-4 bg-white border border-slate-200 rounded-xl shrink-0 flex">
       <div class="flex-1 min-w-0">
-        <div class="px-4 pt-3 pb-1 border-b border-slate-100">
-          <h2 class="text-sm font-medium text-slate-700">Work Item Age</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Elapsed time since leaving Backlog — blue = in progress, green = done</p>
+        <div class="px-4 pt-3 pb-2 border-b border-slate-100 flex items-center justify-between gap-4">
+          <div>
+            <h2 class="text-sm font-medium text-slate-700">Work Item Age</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Elapsed time since leaving Backlog — blue = in progress, green = done</p>
+          </div>
+          <div v-if="sprints.length > 0" class="flex items-center gap-1 shrink-0">
+            <button
+              @click="prevSprint"
+              :disabled="currentSprintIdx === 0"
+              class="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-default transition text-xs"
+            >◀</button>
+            <span class="text-xs font-medium text-slate-600 w-16 text-center">{{ sprintLabel }}</span>
+            <button
+              @click="nextSprint"
+              :disabled="currentSprintIdx === -1"
+              class="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-default transition text-xs"
+            >▶</button>
+          </div>
         </div>
         <WorkItemAgeChart
           :columns="sortedColumns"
           :selectedCardId="selectedCardId ?? undefined"
+          :viewDate="chartViewDate"
           @select="toggleSelectedCard"
         />
       </div>
@@ -183,6 +199,7 @@ const loadingTestData = ref(false)
 const debugOpen = ref(false)
 const analysisOpen = ref(false)
 const selectedCardId = ref<number | null>(null)
+const currentSprintIdx = ref(-1) // -1 = Current (now)
 const editingBoardName = ref(false)
 const editBoardName = ref('')
 const boardNameInput = ref<HTMLInputElement>()
@@ -195,6 +212,58 @@ const selectedCard = computed(() => {
   }
   return null
 })
+
+const SPRINT_MS = 14 * 86400000
+
+const sprints = computed(() => {
+  if (!board.value) return []
+  const backlogCol = board.value.columns.find((c) => c.isBacklog)
+  if (!backlogCol) return []
+
+  let earliest = Date.now()
+  for (const col of board.value.columns) {
+    for (const card of col.cards) {
+      const be = card.stateHistory.find((s) => s.columnName === backlogCol.name)
+      if (be?.exitedAt) {
+        const t = new Date(be.exitedAt).getTime()
+        if (t < earliest) earliest = t
+      }
+    }
+  }
+
+  const now = Date.now()
+  const result: { label: string; endTime: number }[] = []
+  let sprintEnd = earliest + SPRINT_MS
+  let i = 1
+  while (sprintEnd < now) {
+    result.push({ label: `Sprint ${i}`, endTime: sprintEnd })
+    sprintEnd += SPRINT_MS
+    i++
+  }
+  return result
+})
+
+const chartViewDate = computed(() =>
+  currentSprintIdx.value === -1 || currentSprintIdx.value >= sprints.value.length
+    ? Date.now()
+    : sprints.value[currentSprintIdx.value]!.endTime,
+)
+
+const sprintLabel = computed(() =>
+  currentSprintIdx.value === -1 ? 'Current' : (sprints.value[currentSprintIdx.value]?.label ?? 'Current'),
+)
+
+function prevSprint() {
+  if (currentSprintIdx.value === -1) currentSprintIdx.value = sprints.value.length - 1
+  else if (currentSprintIdx.value > 0) currentSprintIdx.value--
+  selectedCardId.value = null
+}
+
+function nextSprint() {
+  if (currentSprintIdx.value < sprints.value.length - 1) currentSprintIdx.value++
+  else currentSprintIdx.value = -1
+  selectedCardId.value = null
+}
 
 function toggleSelectedCard(cardId: number) {
   selectedCardId.value = selectedCardId.value === cardId ? null : cardId
@@ -331,6 +400,7 @@ async function loadTestData() {
   try {
     await api.loadTestData(boardId.value)
     board.value = await api.getBoard(boardId.value)
+    currentSprintIdx.value = -1
   } catch {
     error.value = 'Failed to load test data'
   } finally {

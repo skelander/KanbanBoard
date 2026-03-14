@@ -78,6 +78,7 @@ import type { Column } from '@/services/api'
 const props = defineProps<{
   columns: Column[]
   selectedCardId?: number
+  viewDate?: number // timestamp; defaults to now
 }>()
 
 const emit = defineEmits<{ select: [cardId: number] }>()
@@ -119,31 +120,46 @@ const doneColName = computed(() => {
 })
 
 const dots = computed<Dot[]>(() => {
-  const now = Date.now()
+  const t = props.viewDate ?? Date.now()
   if (!backlogColName.value) return []
 
-  return props.columns.flatMap((col, i) =>
-    col.cards.flatMap((card) => {
-      const backlogEntry = card.stateHistory.find((s) => s.columnName === backlogColName.value)
-      if (!backlogEntry?.exitedAt) return [] // not yet started
+  const result: Dot[] = []
+  for (const card of props.columns.flatMap((c) => c.cards)) {
+    const backlogEntry = card.stateHistory.find((s) => s.columnName === backlogColName.value)
+    if (!backlogEntry?.exitedAt) continue
 
-      const startTime = new Date(backlogEntry.exitedAt).getTime()
-      const doneEntry = doneColName.value
-        ? card.stateHistory.find((s) => s.columnName === doneColName.value)
-        : null
-      const endTime = doneEntry ? new Date(doneEntry.enteredAt).getTime() : now
+    const startTime = new Date(backlogEntry.exitedAt).getTime()
+    if (startTime > t) continue // hadn't started yet at viewDate
 
-      return [{
-        cardId: card.id,
-        cardTitle: card.title,
-        columnName: col.name,
-        colIndex: i,
-        isDone: !!doneEntry,
-        days: Math.round(((endTime - startTime) / 86400000 + 1) * 10) / 10,
-        jitter: ((card.id % 9) - 4) * 5,
-      }]
-    }),
-  )
+    // Find which column the card was in at time t
+    const activeEntry = card.stateHistory.find((s) => {
+      const entered = new Date(s.enteredAt).getTime()
+      const exited = s.exitedAt ? new Date(s.exitedAt).getTime() : Infinity
+      return entered <= t && exited > t
+    })
+    if (!activeEntry) continue
+
+    const doneEntry = doneColName.value
+      ? card.stateHistory.find(
+          (s) => s.columnName === doneColName.value && new Date(s.enteredAt).getTime() <= t,
+        )
+      : null
+
+    const endTime = doneEntry ? new Date(doneEntry.enteredAt).getTime() : t
+    const colIndex = props.columns.findIndex((c) => c.name === activeEntry.columnName)
+    if (colIndex === -1) continue
+
+    result.push({
+      cardId: card.id,
+      cardTitle: card.title,
+      columnName: activeEntry.columnName,
+      colIndex,
+      isDone: !!doneEntry,
+      days: Math.round(((endTime - startTime) / 86400000 + 1) * 10) / 10,
+      jitter: ((card.id % 9) - 4) * 5,
+    })
+  }
+  return result
 })
 
 const yMax = computed(() => {
