@@ -139,7 +139,7 @@ const dots = computed<Dot[]>(() => {
         columnName: col.name,
         colIndex: i,
         isDone: !!doneEntry,
-        days: Math.round(((endTime - startTime) / 86400000) * 10) / 10,
+        days: Math.round(((endTime - startTime) / 86400000 + 1) * 10) / 10,
         jitter: ((card.id % 9) - 4) * 5,
       }]
     }),
