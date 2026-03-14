@@ -49,10 +49,11 @@
         :cy="yPos(dot.days)"
         r="6"
         :fill="dot.isBacklog ? '#94a3b8' : '#3b82f6'"
-        fill-opacity="0.8"
-        stroke="white"
-        stroke-width="1.5"
+        :fill-opacity="dot.cardId === selectedCardId ? 1 : 0.8"
+        :stroke="dot.cardId === selectedCardId ? '#1d4ed8' : 'white'"
+        :stroke-width="dot.cardId === selectedCardId ? 2.5 : 1.5"
         class="cursor-pointer"
+        @click="emit('select', dot.cardId)"
         @mouseenter="showTooltip($event, dot)"
         @mouseleave="tooltip = null"
       />
@@ -60,7 +61,7 @@
 
     <!-- Tooltip -->
     <div
-      v-if="tooltip"
+      v-if="tooltip && tooltip.cardId !== selectedCardId"
       class="absolute z-10 bg-slate-900 text-white text-xs rounded-lg px-2.5 py-1.5 pointer-events-none whitespace-nowrap"
       :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px', transform: 'translate(-50%, calc(-100% - 8px))' }"
     >
@@ -74,7 +75,12 @@
 import { ref, computed } from 'vue'
 import type { Column } from '@/services/api'
 
-const props = defineProps<{ columns: Column[] }>()
+const props = defineProps<{
+  columns: Column[]
+  selectedCardId?: number
+}>()
+
+const emit = defineEmits<{ select: [cardId: number] }>()
 
 const PAD_LEFT = 48
 const PAD_RIGHT = 24

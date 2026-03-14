@@ -92,12 +92,53 @@
 
     <pre v-if="debugOpen" class="mx-5 mt-4 p-4 bg-slate-900 text-green-400 text-xs rounded-xl overflow-auto max-h-64 shrink-0">{{ JSON.stringify(board, null, 2) }}</pre>
 
-    <div v-if="analysisOpen" class="mx-5 mt-4 bg-white border border-slate-200 rounded-xl shrink-0">
-      <div class="px-4 pt-3 pb-1 border-b border-slate-100">
-        <h2 class="text-sm font-medium text-slate-700">Work Item Age</h2>
-        <p class="text-xs text-slate-400 mt-0.5">Days each card has been in its current column</p>
+    <div v-if="analysisOpen" class="mx-5 mt-4 bg-white border border-slate-200 rounded-xl shrink-0 flex">
+      <div class="flex-1 min-w-0">
+        <div class="px-4 pt-3 pb-1 border-b border-slate-100">
+          <h2 class="text-sm font-medium text-slate-700">Work Item Age</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Days each card has been in its current column</p>
+        </div>
+        <WorkItemAgeChart
+          :columns="sortedColumns"
+          :selectedCardId="selectedCardId ?? undefined"
+          @select="toggleSelectedCard"
+        />
       </div>
-      <WorkItemAgeChart :columns="sortedColumns" />
+
+      <!-- Card detail panel -->
+      <div v-if="selectedCard" class="w-72 border-l border-slate-200 shrink-0 flex flex-col">
+        <div class="flex items-center justify-between px-4 pt-3 pb-2 border-b border-slate-100">
+          <span class="text-xs font-medium text-slate-700 truncate">
+            <span class="text-slate-400 mr-1">#{{ selectedCard.card.id }}</span>{{ selectedCard.card.title }}
+          </span>
+          <button @click="selectedCardId = null" class="text-slate-300 hover:text-slate-500 transition ml-2 shrink-0">✕</button>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto text-xs space-y-4">
+          <div>
+            <p class="text-slate-400 mb-1">Current column</p>
+            <span class="inline-block bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-medium">{{ selectedCard.column.name }}</span>
+          </div>
+          <div v-if="selectedCard.card.description">
+            <p class="text-slate-400 mb-1">Description</p>
+            <p class="text-slate-600 leading-relaxed">{{ selectedCard.card.description }}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 mb-2">Time per column</p>
+            <div class="space-y-1.5">
+              <div
+                v-for="h in selectedCard.card.stateHistory"
+                :key="h.columnName + h.enteredAt"
+                class="flex items-center justify-between"
+              >
+                <span :class="!h.exitedAt ? 'text-slate-800 font-medium' : 'text-slate-500'">{{ h.columnName }}</span>
+                <span :class="!h.exitedAt ? 'text-blue-600 font-semibold tabular-nums' : 'text-slate-400 tabular-nums'">
+                  {{ historyDays(h) }}d
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="flex gap-4 p-5 overflow-x-auto flex-1 items-start">
@@ -118,7 +159,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api, type Board, type Column, type Card, type User } from '@/services/api'
+import { api, type Board, type Column, type Card, type User, type CardStateHistory } from '@/services/api'
 import KanbanColumn from '@/components/KanbanColumn.vue'
 import WorkItemAgeChart from '@/components/WorkItemAgeChart.vue'
 
@@ -136,9 +177,29 @@ const selectedUserId = ref<number | ''>('')
 const loadingTestData = ref(false)
 const debugOpen = ref(false)
 const analysisOpen = ref(false)
+const selectedCardId = ref<number | null>(null)
 const editingBoardName = ref(false)
 const editBoardName = ref('')
 const boardNameInput = ref<HTMLInputElement>()
+
+const selectedCard = computed(() => {
+  if (!selectedCardId.value || !board.value) return null
+  for (const col of board.value.columns) {
+    const card = col.cards.find((c) => c.id === selectedCardId.value)
+    if (card) return { card, column: col }
+  }
+  return null
+})
+
+function toggleSelectedCard(cardId: number) {
+  selectedCardId.value = selectedCardId.value === cardId ? null : cardId
+}
+
+function historyDays(h: CardStateHistory): number {
+  const entered = new Date(h.enteredAt).getTime()
+  const exited = h.exitedAt ? new Date(h.exitedAt).getTime() : Date.now()
+  return Math.round(((exited - entered) / 86400000) * 10) / 10
+}
 
 const sortedColumns = computed<Column[]>(() =>
   board.value
