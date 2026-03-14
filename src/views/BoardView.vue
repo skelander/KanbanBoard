@@ -92,8 +92,12 @@
 
     <pre v-if="debugOpen" class="mx-5 mt-4 p-4 bg-slate-900 text-green-400 text-xs rounded-xl overflow-auto max-h-64 shrink-0">{{ JSON.stringify(board, null, 2) }}</pre>
 
-    <div v-if="analysisOpen" class="mx-5 mt-4 p-4 bg-white border border-slate-200 rounded-xl max-h-64 overflow-auto shrink-0">
-      <p class="text-sm text-slate-400 italic">Analysis coming soon…</p>
+    <div v-if="analysisOpen" class="mx-5 mt-4 bg-white border border-slate-200 rounded-xl shrink-0">
+      <div class="px-4 pt-3 pb-1 border-b border-slate-100">
+        <h2 class="text-sm font-medium text-slate-700">Work Item Age</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Days each card has been in its current column</p>
+      </div>
+      <WorkItemAgeChart :columns="sortedColumns" />
     </div>
 
     <div class="flex gap-4 p-5 overflow-x-auto flex-1 items-start">
@@ -116,6 +120,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api, type Board, type Column, type Card, type User } from '@/services/api'
 import KanbanColumn from '@/components/KanbanColumn.vue'
+import WorkItemAgeChart from '@/components/WorkItemAgeChart.vue'
 
 const route = useRoute()
 const router = useRouter()
