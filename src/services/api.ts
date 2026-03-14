@@ -101,6 +101,8 @@ export const api = {
     request<void>('POST', `/boards/${boardId}/testdata`),
   loadBacklogTestData: (boardId: number) =>
     request<void>('POST', `/boards/${boardId}/testdata/backlog`),
+  loadMidSprintTestData: (boardId: number) =>
+    request<void>('POST', `/boards/${boardId}/testdata/midsprint`),
 }
 
 // Types

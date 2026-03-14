@@ -78,6 +78,11 @@
             :disabled="loadingTestData"
             class="text-sm text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition disabled:opacity-40"
           >{{ loadingTestData ? '…' : 'Backlog data' }}</button>
+          <button
+            @click="loadMidSprintTestData"
+            :disabled="loadingTestData"
+            class="text-sm text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition disabled:opacity-40"
+          >{{ loadingTestData ? '…' : 'Mid-sprint data' }}</button>
         </template>
 
         <span class="text-slate-200">|</span>
@@ -341,6 +346,19 @@ async function loadBacklogTestData() {
     board.value = await api.getBoard(boardId.value)
   } catch {
     error.value = 'Failed to load backlog data'
+  } finally {
+    loadingTestData.value = false
+  }
+}
+
+async function loadMidSprintTestData() {
+  if (!confirm('Load mid-sprint snapshot onto this board? This will clear all existing cards.')) return
+  loadingTestData.value = true
+  try {
+    await api.loadMidSprintTestData(boardId.value)
+    board.value = await api.getBoard(boardId.value)
+  } catch {
+    error.value = 'Failed to load mid-sprint data'
   } finally {
     loadingTestData.value = false
   }
