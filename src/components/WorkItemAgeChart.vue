@@ -1,11 +1,24 @@
 <template>
   <div ref="container" class="relative overflow-x-auto p-4">
     <svg :width="svgWidth" :height="svgHeight" class="block">
+      <!-- Column cells (bordered bands) — drawn first so grid lines render on top -->
+      <rect
+        v-for="(col, i) in visibleColumns"
+        :key="col.id"
+        :x="PAD_LEFT + i * COL_W"
+        :y="PAD_TOP"
+        :width="COL_W"
+        :height="CHART_H"
+        fill="white"
+        stroke="#cbd5e1"
+        stroke-width="1"
+      />
+
       <!-- Horizontal grid lines + Y-axis tick labels -->
       <g v-for="tick in yTicks" :key="tick">
         <line
           :x1="PAD_LEFT" :y1="yPos(tick)"
-          :x2="svgWidth - PAD_RIGHT" :y2="yPos(tick)"
+          :x2="PAD_LEFT + visibleColumns.length * COL_W" :y2="yPos(tick)"
           stroke="#e2e8f0" stroke-width="1"
         />
         <text
@@ -15,24 +28,14 @@
         >{{ tick }}</text>
       </g>
 
-      <!-- Y-axis line -->
-      <line :x1="PAD_LEFT" :y1="PAD_TOP" :x2="PAD_LEFT" :y2="PAD_TOP + CHART_H" stroke="#cbd5e1" stroke-width="1" />
-
-      <!-- Baseline -->
-      <line :x1="PAD_LEFT" :y1="PAD_TOP + CHART_H" :x2="svgWidth - PAD_RIGHT" :y2="PAD_TOP + CHART_H" stroke="#cbd5e1" stroke-width="1" />
-
-      <!-- Column vertical guides + X-axis labels -->
-      <g v-for="(col, i) in columns" :key="col.id">
-        <line
-          :x1="xCenter(i)" :y1="PAD_TOP"
-          :x2="xCenter(i)" :y2="PAD_TOP + CHART_H"
-          stroke="#f1f5f9" stroke-width="1"
-        />
-        <text
-          :x="xCenter(i)" :y="PAD_TOP + CHART_H + 18"
-          text-anchor="middle" fill="#64748b" font-size="11"
-        >{{ col.name.length > 12 ? col.name.slice(0, 11) + '…' : col.name }}</text>
-      </g>
+      <!-- X-axis column labels -->
+      <text
+        v-for="(col, i) in visibleColumns"
+        :key="col.id + '-label'"
+        :x="PAD_LEFT + i * COL_W + COL_W / 2"
+        :y="PAD_TOP + CHART_H + 18"
+        text-anchor="middle" fill="#64748b" font-size="11"
+      >{{ col.name.length > 12 ? col.name.slice(0, 11) + '…' : col.name }}</text>
 
       <!-- No-data label -->
       <text
@@ -92,7 +95,9 @@ const COL_W = 130
 
 const container = ref<HTMLElement>()
 
-const svgWidth = computed(() => PAD_LEFT + props.columns.length * COL_W + PAD_RIGHT)
+const visibleColumns = computed(() => props.columns.filter((c) => !c.isBacklog))
+
+const svgWidth = computed(() => PAD_LEFT + visibleColumns.value.length * COL_W + PAD_RIGHT)
 const svgHeight = PAD_TOP + CHART_H + PAD_BOTTOM
 
 interface Dot {
@@ -146,7 +151,7 @@ const dots = computed<Dot[]>(() => {
       : null
 
     const endTime = doneEntry ? new Date(doneEntry.enteredAt).getTime() : t
-    const colIndex = props.columns.findIndex((c) => c.name === activeEntry.columnName)
+    const colIndex = visibleColumns.value.findIndex((c) => c.name === activeEntry.columnName)
     if (colIndex === -1) continue
 
     result.push({
