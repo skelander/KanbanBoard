@@ -115,9 +115,10 @@ const dots = computed<Dot[]>(() => {
   const now = Date.now()
   return props.columns.flatMap((col, i) =>
     col.cards.map((card) => {
-      const h = card.stateHistory.find((s) => !s.exitedAt)
-      const days = h
-        ? Math.round(((now - new Date(h.enteredAt).getTime()) / 86400000) * 10) / 10
+      const first = card.stateHistory.reduce<string | null>((min, s) =>
+        !min || s.enteredAt < min ? s.enteredAt : min, null)
+      const days = first
+        ? Math.round(((now - new Date(first).getTime()) / 86400000) * 10) / 10
         : 0
       return {
         cardId: card.id,
