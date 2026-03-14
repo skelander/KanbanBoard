@@ -48,7 +48,7 @@
         :cx="xCenter(dot.colIndex) + dot.jitter"
         :cy="yPos(dot.days)"
         r="6"
-        :fill="dot.isDone ? '#94a3b8' : '#3b82f6'"
+        :fill="dot.isDone ? '#22c55e' : '#3b82f6'"
         :fill-opacity="dot.cardId === selectedCardId ? 1 : 0.8"
         :stroke="dot.cardId === selectedCardId ? '#1d4ed8' : 'white'"
         :stroke-width="dot.cardId === selectedCardId ? 2.5 : 1.5"

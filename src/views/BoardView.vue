@@ -101,7 +101,7 @@
       <div class="flex-1 min-w-0">
         <div class="px-4 pt-3 pb-1 border-b border-slate-100">
           <h2 class="text-sm font-medium text-slate-700">Work Item Age</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Elapsed time since leaving Backlog — blue = in progress, grey = done</p>
+          <p class="text-xs text-slate-400 mt-0.5">Elapsed time since leaving Backlog — blue = in progress, green = done</p>
         </div>
         <WorkItemAgeChart
           :columns="sortedColumns"
