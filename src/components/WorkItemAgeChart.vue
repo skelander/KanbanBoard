@@ -48,7 +48,7 @@
         :cx="xCenter(dot.colIndex) + dot.jitter"
         :cy="yPos(dot.days)"
         r="6"
-        :fill="dot.isBacklog ? '#94a3b8' : '#3b82f6'"
+        :fill="dot.isDone ? '#94a3b8' : '#3b82f6'"
         :fill-opacity="dot.cardId === selectedCardId ? 1 : 0.8"
         :stroke="dot.cardId === selectedCardId ? '#1d4ed8' : 'white'"
         :stroke-width="dot.cardId === selectedCardId ? 2.5 : 1.5"
@@ -99,7 +99,7 @@ interface Dot {
   cardTitle: string
   columnName: string
   colIndex: number
-  isBacklog: boolean
+  isDone: boolean
   days: number
   jitter: number
 }
@@ -111,24 +111,37 @@ interface TooltipData extends Dot {
 
 const tooltip = ref<TooltipData | null>(null)
 
+const backlogColName = computed(() => props.columns.find((c) => c.isBacklog)?.name ?? null)
+
+const doneColName = computed(() => {
+  const sorted = props.columns.filter((c) => !c.isBacklog).sort((a, b) => a.position - b.position)
+  return sorted[sorted.length - 1]?.name ?? null
+})
+
 const dots = computed<Dot[]>(() => {
   const now = Date.now()
+  if (!backlogColName.value) return []
+
   return props.columns.flatMap((col, i) =>
-    col.cards.map((card) => {
-      const first = card.stateHistory.reduce<string | null>((min, s) =>
-        !min || s.enteredAt < min ? s.enteredAt : min, null)
-      const days = first
-        ? Math.round(((now - new Date(first).getTime()) / 86400000) * 10) / 10
-        : 0
-      return {
+    col.cards.flatMap((card) => {
+      const backlogEntry = card.stateHistory.find((s) => s.columnName === backlogColName.value)
+      if (!backlogEntry?.exitedAt) return [] // not yet started
+
+      const startTime = new Date(backlogEntry.exitedAt).getTime()
+      const doneEntry = doneColName.value
+        ? card.stateHistory.find((s) => s.columnName === doneColName.value)
+        : null
+      const endTime = doneEntry ? new Date(doneEntry.enteredAt).getTime() : now
+
+      return [{
         cardId: card.id,
         cardTitle: card.title,
         columnName: col.name,
         colIndex: i,
-        isBacklog: col.isBacklog,
-        days,
+        isDone: !!doneEntry,
+        days: Math.round(((endTime - startTime) / 86400000) * 10) / 10,
         jitter: ((card.id % 9) - 4) * 5,
-      }
+      }]
     }),
   )
 })
