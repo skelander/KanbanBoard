@@ -69,7 +69,7 @@
       :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px', transform: 'translate(-50%, calc(-100% - 8px))' }"
     >
       <div><span class="text-slate-400">#{{ tooltip.cardId }}</span> {{ tooltip.cardTitle }}</div>
-      <div class="text-slate-300 mt-0.5">{{ tooltip.columnName }} · <span class="text-white font-medium">{{ tooltip.days }}d</span></div>
+      <div class="text-slate-300 mt-0.5">Started {{ formatDate(tooltip.startedAt) }} · Age <span class="text-white font-medium">{{ tooltip.days }}d</span></div>
     </div>
   </div>
 </template>
@@ -108,6 +108,7 @@ interface Dot {
   isDone: boolean
   days: number
   jitter: number
+  startedAt: Date
 }
 
 interface TooltipData extends Dot {
@@ -162,6 +163,7 @@ const dots = computed<Dot[]>(() => {
       isDone: !!doneEntry,
       days: Math.round(((endTime - startTime) / 86400000 + 1) * 10) / 10,
       jitter: ((card.id % 9) - 4) * 5,
+      startedAt: new Date(startTime),
     })
   }
   return result
@@ -193,6 +195,10 @@ function yPos(days: number): number {
 
 function xCenter(colIndex: number): number {
   return PAD_LEFT + colIndex * COL_W + COL_W / 2
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
 function showTooltip(event: MouseEvent, dot: Dot) {
