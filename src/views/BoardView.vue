@@ -295,10 +295,38 @@ const sortedColumns = computed<Column[]>(() =>
 
 const isHistorical = computed(() => currentSprintIdx.value !== -1)
 
+// Start of the viewed sprint: end of the previous sprint (or 0 for sprint 1 / no history)
+const viewedSprintStart = computed(() => {
+  if (currentSprintIdx.value === -1)
+    return sprints.value.at(-1)?.endTime ?? 0
+  return currentSprintIdx.value > 0 ? sprints.value[currentSprintIdx.value - 1]!.endTime : 0
+})
+
+const doneColName = computed(
+  () => sortedColumns.value.filter((c) => !c.isBacklog).at(-1)?.name ?? null,
+)
+
 const boardColumns = computed<Column[]>(() => {
-  if (!isHistorical.value) return sortedColumns.value
   const t = chartViewDate.value
+  const sprintStart = viewedSprintStart.value
+  const doneName = doneColName.value
   const allCards = sortedColumns.value.flatMap((c) => c.cards)
+
+  if (!isHistorical.value) {
+    // Current view: show live positions but filter Done to current sprint only
+    return sortedColumns.value.map((col) => {
+      if (col.name !== doneName) return col
+      return {
+        ...col,
+        cards: col.cards.filter((card) => {
+          const entry = card.stateHistory.find((s) => s.columnName === doneName)
+          return entry ? new Date(entry.enteredAt).getTime() >= sprintStart : false
+        }),
+      }
+    })
+  }
+
+  // Historical view: reconstruct board at time t, Done only shows cards completed in this sprint
   const colMap = new Map<string, Card[]>()
   for (const card of allCards) {
     const entry = card.stateHistory.find((s) => {
@@ -307,6 +335,7 @@ const boardColumns = computed<Column[]>(() => {
       return entered <= t && exited > t
     })
     if (!entry) continue
+    if (entry.columnName === doneName && new Date(entry.enteredAt).getTime() < sprintStart) continue
     if (!colMap.has(entry.columnName)) colMap.set(entry.columnName, [])
     colMap.get(entry.columnName)!.push(card)
   }
