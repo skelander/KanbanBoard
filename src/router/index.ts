@@ -16,14 +16,8 @@ const router = createRouter({
   ],
 })
 
-// Set to false to re-enable the login page
-const SKIP_LOGIN = true
-
-router.beforeEach(async (to) => {
-  if (SKIP_LOGIN && !api.isLoggedIn()) {
-    try { await api.login('admin', 'admin') } catch { /* ignore */ }
-  }
-  if (!SKIP_LOGIN && to.meta.requiresAuth && !api.isLoggedIn()) return '/login'
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth && !api.isLoggedIn()) return '/login'
   if (to.meta.requiresAdmin && !api.isAdmin()) return '/boards'
 })
 
