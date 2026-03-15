@@ -182,10 +182,12 @@ const dots = computed<Dot[]>(() => {
   return result
 })
 
-// 85th percentile of all dot ages (null when fewer than 2 dots)
+// 85th percentile age of dots in the Doing column(s) — not To Do (first) and not Done (last)
 const sle85 = computed<number | null>(() => {
-  if (dots.value.length < 2) return null
-  const sorted = [...dots.value].map((d) => d.days).sort((a, b) => a - b)
+  const lastIdx = visibleColumns.value.length - 1
+  const doingDots = dots.value.filter((d) => d.colIndex > 0 && d.colIndex < lastIdx)
+  if (doingDots.length < 2) return null
+  const sorted = doingDots.map((d) => d.days).sort((a, b) => a - b)
   const idx = Math.ceil(0.85 * sorted.length) - 1
   return Math.round(sorted[idx]! * 10) / 10
 })
