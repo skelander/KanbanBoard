@@ -45,6 +45,19 @@
         fill="#94a3b8" font-size="13" font-style="italic"
       >No cards on this board yet</text>
 
+      <!-- 85% SLE line -->
+      <g v-if="sle85 !== null">
+        <line
+          :x1="PAD_LEFT" :y1="yPos(sle85)"
+          :x2="PAD_LEFT + visibleColumns.length * COL_W" :y2="yPos(sle85)"
+          stroke="#f97316" stroke-width="1.5" stroke-dasharray="6 3"
+        />
+        <text
+          :x="PAD_LEFT + visibleColumns.length * COL_W + 4" :y="yPos(sle85)"
+          dominant-baseline="middle" fill="#f97316" font-size="9" font-weight="600"
+        >85% SLE {{ sle85 }}d</text>
+      </g>
+
       <!-- Dots -->
       <circle
         v-for="dot in dots" :key="dot.cardId"
@@ -87,7 +100,7 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [cardId: number] }>()
 
 const PAD_LEFT = 48
-const PAD_RIGHT = 24
+const PAD_RIGHT = 72
 const PAD_TOP = 16
 const PAD_BOTTOM = 40
 const CHART_H = 260
@@ -167,6 +180,14 @@ const dots = computed<Dot[]>(() => {
     })
   }
   return result
+})
+
+// 85th percentile of all dot ages (null when fewer than 2 dots)
+const sle85 = computed<number | null>(() => {
+  if (dots.value.length < 2) return null
+  const sorted = [...dots.value].map((d) => d.days).sort((a, b) => a - b)
+  const idx = Math.ceil(0.85 * sorted.length) - 1
+  return Math.round(sorted[idx] * 10) / 10
 })
 
 const yMax = computed(() => {
