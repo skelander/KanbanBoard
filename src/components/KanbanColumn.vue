@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-slate-200/70 rounded-xl p-3 flex flex-col gap-2 min-w-72 max-w-72 shrink-0">
+  <div class="bg-slate-200/70 rounded-xl p-3 flex flex-col gap-2 flex-1 min-w-40">
     <div class="flex items-center justify-between px-1 py-0.5">
       <h3 class="font-semibold text-slate-700 text-sm truncate">{{ column.name }}</h3>
       <span v-if="column.wipLimit" class="text-xs font-semibold shrink-0 ml-2 tabular-nums" :class="atWipLimit ? 'text-red-500' : 'text-slate-400'">
