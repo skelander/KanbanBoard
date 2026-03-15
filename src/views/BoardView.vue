@@ -121,6 +121,7 @@
           :columns="sortedColumns"
           :selectedCardId="selectedCardId ?? undefined"
           :viewDate="chartViewDate"
+          :historicalCycleTimes="historicalCycleTimes"
           @select="toggleSelectedCard"
         />
       </div>
@@ -330,6 +331,30 @@ const boardColumns = computed<Column[]>(() => {
     colMap.get(entry.columnName)!.push(card)
   }
   return sortedColumns.value.map((col) => ({ ...col, cards: colMap.get(col.name) ?? [] }))
+})
+
+// Cycle times (days) of cards completed in sprints before the current viewed sprint.
+// Used for 85% SLE — based on historical throughput, not the current sprint.
+const historicalCycleTimes = computed<number[]>(() => {
+  if (!board.value) return []
+  const backlogCol = board.value.columns.find((c) => c.isBacklog)
+  if (!backlogCol || !doneColName.value) return []
+  const cutoff = viewedSprintStart.value // only cards completed before this sprint started
+  const times: number[] = []
+  for (const col of board.value.columns) {
+    for (const card of col.cards) {
+      const backlogEntry = card.stateHistory.find((s) => s.columnName === backlogCol.name)
+      if (!backlogEntry?.exitedAt) continue
+      const startTime = new Date(backlogEntry.exitedAt).getTime()
+      const doneEntry = card.stateHistory.find((s) => s.columnName === doneColName.value)
+      if (!doneEntry) continue
+      const doneTime = new Date(doneEntry.enteredAt).getTime()
+      if (doneTime >= cutoff) continue
+      const days = (doneTime - startTime) / 86400000
+      if (days > 0) times.push(days)
+    }
+  }
+  return times
 })
 
 const nonMembers = computed<User[]>(() => {

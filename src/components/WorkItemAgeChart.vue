@@ -45,6 +45,19 @@
         fill="#94a3b8" font-size="13" font-style="italic"
       >No cards on this board yet</text>
 
+      <!-- 50% SLE line -->
+      <g v-if="sle50 !== null">
+        <line
+          :x1="PAD_LEFT" :y1="yPos(sle50 ?? 0)"
+          :x2="PAD_LEFT + visibleColumns.length * COL_W" :y2="yPos(sle50 ?? 0)"
+          stroke="#a855f7" stroke-width="1.5" stroke-dasharray="6 3"
+        />
+        <text
+          :x="PAD_LEFT + visibleColumns.length * COL_W + 4" :y="yPos(sle50 ?? 0)"
+          dominant-baseline="middle" fill="#a855f7" font-size="9" font-weight="600"
+        >50% SLE {{ sle50 }}d</text>
+      </g>
+
       <!-- 85% SLE line -->
       <g v-if="sle85 !== null">
         <line
@@ -95,6 +108,7 @@ const props = defineProps<{
   columns: Column[]
   selectedCardId?: number
   viewDate?: number // timestamp; defaults to now
+  historicalCycleTimes?: number[] // cycle times (days) from previous sprints for SLE
 }>()
 
 const emit = defineEmits<{ select: [cardId: number] }>()
@@ -182,15 +196,16 @@ const dots = computed<Dot[]>(() => {
   return result
 })
 
-// 85th percentile age of dots in the Doing column(s) — not To Do (first) and not Done (last)
-const sle85 = computed<number | null>(() => {
-  const lastIdx = visibleColumns.value.length - 1
-  const doingDots = dots.value.filter((d) => d.colIndex > 0 && d.colIndex < lastIdx)
-  if (doingDots.length < 2) return null
-  const sorted = doingDots.map((d) => d.days).sort((a, b) => a - b)
-  const idx = Math.ceil(0.85 * sorted.length) - 1
+function slePercentile(pct: number): number | null {
+  const times = props.historicalCycleTimes
+  if (!times || times.length < 2) return null
+  const sorted = [...times].sort((a, b) => a - b)
+  const idx = Math.ceil(pct * sorted.length) - 1
   return Math.round(sorted[idx]! * 10) / 10
-})
+}
+
+const sle50 = computed<number | null>(() => slePercentile(0.5))
+const sle85 = computed<number | null>(() => slePercentile(0.85))
 
 const yMax = computed(() => {
   const max = Math.max(0, ...dots.value.map((d) => d.days))
