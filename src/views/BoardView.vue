@@ -66,15 +66,6 @@
           </div>
         </div>
 
-        <template v-if="isAdmin">
-          <span class="text-slate-200">|</span>
-          <button
-            @click="loadTestData"
-            :disabled="loadingTestData"
-            class="text-sm text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition disabled:opacity-40"
-          >{{ loadingTestData ? 'Loading…' : 'Sprint data' }}</button>
-        </template>
-
         <span class="text-slate-200">|</span>
         <button @click="debugOpen = !debugOpen" class="text-sm px-3 py-1.5 rounded-lg hover:bg-slate-100 transition" :class="debugOpen ? 'text-amber-600 font-medium' : 'text-slate-500 hover:text-slate-700'">JSON</button>
         <button @click="analysisOpen = !analysisOpen" class="text-sm px-3 py-1.5 rounded-lg hover:bg-slate-100 transition" :class="analysisOpen ? 'text-blue-600 font-medium' : 'text-slate-500 hover:text-slate-700'">Analysis</button>
@@ -204,7 +195,6 @@ const membersOpen = ref(false)
 const allUsers = ref<User[]>([])
 const selectedUserId = ref<number | ''>('')
 
-const loadingTestData = ref(false)
 const debugOpen = ref(false)
 const analysisOpen = ref(false)
 const selectedCardId = ref<number | null>(null)
@@ -451,21 +441,6 @@ async function moveCard(cardId: number, fromColumnId: number, toColumnId: number
     board.value = await api.getBoard(boardId.value)
   }
 }
-
-async function loadTestData() {
-  if (!confirm('Load a simulated two-week sprint onto this board? This will clear all existing cards.')) return
-  loadingTestData.value = true
-  try {
-    await api.loadTestData(boardId.value)
-    board.value = await api.getBoard(boardId.value)
-    currentSprintIdx.value = -1
-  } catch {
-    error.value = 'Failed to load test data'
-  } finally {
-    loadingTestData.value = false
-  }
-}
-
 
 function logout() {
   api.logout()
