@@ -48,12 +48,12 @@
       <!-- 85% SLE line -->
       <g v-if="sle85 !== null">
         <line
-          :x1="PAD_LEFT" :y1="yPos(sle85)"
-          :x2="PAD_LEFT + visibleColumns.length * COL_W" :y2="yPos(sle85)"
+          :x1="PAD_LEFT" :y1="yPos(sle85 ?? 0)"
+          :x2="PAD_LEFT + visibleColumns.length * COL_W" :y2="yPos(sle85 ?? 0)"
           stroke="#f97316" stroke-width="1.5" stroke-dasharray="6 3"
         />
         <text
-          :x="PAD_LEFT + visibleColumns.length * COL_W + 4" :y="yPos(sle85)"
+          :x="PAD_LEFT + visibleColumns.length * COL_W + 4" :y="yPos(sle85 ?? 0)"
           dominant-baseline="middle" fill="#f97316" font-size="9" font-weight="600"
         >85% SLE {{ sle85 }}d</text>
       </g>
