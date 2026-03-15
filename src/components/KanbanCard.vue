@@ -62,7 +62,7 @@ const emit = defineEmits<{
 const workItemAge = computed<number | null>(() => {
   const first = props.card.stateHistory[0]
   if (!first) return null
-  if (!first.exitedAt) return 0
+  if (!first.exitedAt) return null
   return Math.floor((Date.now() - new Date(first.exitedAt).getTime()) / 86_400_000)
 })
 
