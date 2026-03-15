@@ -7,6 +7,9 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString().replace('T', ' ').slice(0, 19)),
+  },
   plugins: [
     vue(),
     vueDevTools(),

@@ -37,6 +37,7 @@
           >
             {{ loading ? 'Signing in…' : 'Sign in' }}
           </button>
+          <p class="text-center text-xs text-slate-400">Build: {{ buildTime }}</p>
         </form>
       </div>
     </div>
@@ -45,6 +46,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+
+declare const __BUILD_TIME__: string
+const buildTime = __BUILD_TIME__
 import { useRouter } from 'vue-router'
 import { api } from '@/services/api'
 
