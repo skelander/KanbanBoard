@@ -46,7 +46,7 @@
       >No cards on this board yet</text>
 
       <!-- 50% SLE line -->
-      <g v-if="sle50 !== null">
+      <g v-if="showSle50 !== false && sle50 !== null">
         <line
           :x1="PAD_LEFT" :y1="yPos(sle50 ?? 0)"
           :x2="PAD_LEFT + visibleColumns.length * COL_W" :y2="yPos(sle50 ?? 0)"
@@ -59,7 +59,7 @@
       </g>
 
       <!-- 85% SLE line -->
-      <g v-if="sle85 !== null">
+      <g v-if="showSle85 !== false && sle85 !== null">
         <line
           :x1="PAD_LEFT" :y1="yPos(sle85 ?? 0)"
           :x2="PAD_LEFT + visibleColumns.length * COL_W" :y2="yPos(sle85 ?? 0)"
@@ -109,6 +109,8 @@ const props = defineProps<{
   selectedCardId?: number
   viewDate?: number // timestamp; defaults to now
   historicalCycleTimes?: number[] // cycle times (days) from previous sprints for SLE
+  showSle50?: boolean
+  showSle85?: boolean
 }>()
 
 const emit = defineEmits<{ select: [cardId: number] }>()

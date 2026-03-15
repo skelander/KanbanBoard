@@ -103,6 +103,18 @@
             <h2 class="text-sm font-medium text-slate-700">Work Item Age</h2>
             <p class="text-xs text-slate-400 mt-0.5">Elapsed time since leaving Backlog — blue = in progress, green = done</p>
           </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button
+              @click="showSle50 = !showSle50"
+              class="text-xs px-2 py-1 rounded-md border transition font-medium"
+              :class="showSle50 ? 'bg-purple-50 border-purple-300 text-purple-700' : 'bg-white border-slate-200 text-slate-400'"
+            >50% SLE</button>
+            <button
+              @click="showSle85 = !showSle85"
+              class="text-xs px-2 py-1 rounded-md border transition font-medium"
+              :class="showSle85 ? 'bg-orange-50 border-orange-300 text-orange-600' : 'bg-white border-slate-200 text-slate-400'"
+            >85% SLE</button>
+          </div>
           <div v-if="sprints.length > 0" class="flex items-center gap-1 shrink-0">
             <button
               @click="prevSprint"
@@ -122,6 +134,8 @@
           :selectedCardId="selectedCardId ?? undefined"
           :viewDate="chartViewDate"
           :historicalCycleTimes="historicalCycleTimes"
+          :showSle50="showSle50"
+          :showSle85="showSle85"
           @select="toggleSelectedCard"
         />
       </div>
@@ -198,6 +212,8 @@ const selectedUserId = ref<number | ''>('')
 
 const debugOpen = ref(false)
 const analysisOpen = ref(false)
+const showSle50 = ref(true)
+const showSle85 = ref(true)
 const selectedCardId = ref<number | null>(null)
 const currentSprintIdx = ref(-1) // -1 = Current (now)
 const editingBoardName = ref(false)
