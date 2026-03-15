@@ -78,6 +78,24 @@
         <span class="text-slate-200">|</span>
         <button @click="debugOpen = !debugOpen" class="text-sm px-3 py-1.5 rounded-lg hover:bg-slate-100 transition" :class="debugOpen ? 'text-amber-600 font-medium' : 'text-slate-500 hover:text-slate-700'">JSON</button>
         <button @click="analysisOpen = !analysisOpen" class="text-sm px-3 py-1.5 rounded-lg hover:bg-slate-100 transition" :class="analysisOpen ? 'text-blue-600 font-medium' : 'text-slate-500 hover:text-slate-700'">Analysis</button>
+
+        <template v-if="sprints.length > 0">
+          <span class="text-slate-200">|</span>
+          <div class="flex items-center gap-1">
+            <button
+              @click="prevSprint"
+              :disabled="currentSprintIdx === 0"
+              class="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-default transition text-xs"
+            >◀</button>
+            <span class="text-xs font-medium w-16 text-center" :class="isHistorical ? 'text-amber-600' : 'text-slate-600'">{{ sprintLabel }}</span>
+            <button
+              @click="nextSprint"
+              :disabled="currentSprintIdx === -1"
+              class="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-default transition text-xs"
+            >▶</button>
+          </div>
+        </template>
+
         <span class="text-slate-200">|</span>
         <button @click="logout" class="text-sm text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition">Log out</button>
       </div>
@@ -154,10 +172,11 @@
 
     <div class="flex gap-4 p-5 overflow-x-auto flex-1 items-start">
       <KanbanColumn
-        v-for="col in sortedColumns"
+        v-for="col in boardColumns"
         :key="col.id"
         :column="col"
         :createCard="(colId, title) => doCreateCard(colId, title)"
+        :isHistorical="isHistorical"
         @deleteCard="deleteCard"
         @editCard="editCard"
         @moveCard="moveCard"
@@ -273,6 +292,26 @@ const sortedColumns = computed<Column[]>(() =>
       })
     : []
 )
+
+const isHistorical = computed(() => currentSprintIdx.value !== -1)
+
+const boardColumns = computed<Column[]>(() => {
+  if (!isHistorical.value) return sortedColumns.value
+  const t = chartViewDate.value
+  const allCards = sortedColumns.value.flatMap((c) => c.cards)
+  const colMap = new Map<string, Card[]>()
+  for (const card of allCards) {
+    const entry = card.stateHistory.find((s) => {
+      const entered = new Date(s.enteredAt).getTime()
+      const exited = s.exitedAt ? new Date(s.exitedAt).getTime() : Infinity
+      return entered <= t && exited > t
+    })
+    if (!entry) continue
+    if (!colMap.has(entry.columnName)) colMap.set(entry.columnName, [])
+    colMap.get(entry.columnName)!.push(card)
+  }
+  return sortedColumns.value.map((col) => ({ ...col, cards: colMap.get(col.name) ?? [] }))
+})
 
 const nonMembers = computed<User[]>(() => {
   if (!board.value) return []

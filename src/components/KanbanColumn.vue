@@ -11,6 +11,7 @@
       v-model="localCards"
       :animation="150"
       group="cards"
+      :disabled="isHistorical"
       class="flex flex-col gap-2 min-h-10"
       @add="onAdd"
       @update="onUpdate"
@@ -24,7 +25,7 @@
       />
     </VueDraggable>
 
-    <form @submit.prevent="submitAdd" class="mt-0.5">
+    <form v-if="!isHistorical" @submit.prevent="submitAdd" class="mt-0.5">
       <input
         v-if="adding"
         ref="addInput"
@@ -55,6 +56,7 @@ import type { Column, Card } from '@/services/api'
 const props = defineProps<{
   column: Column
   createCard: (columnId: number, title: string) => Promise<Card>
+  isHistorical?: boolean
 }>()
 
 const emit = defineEmits<{
