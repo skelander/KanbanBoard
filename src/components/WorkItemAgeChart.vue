@@ -187,7 +187,7 @@ const sle85 = computed<number | null>(() => {
   if (dots.value.length < 2) return null
   const sorted = [...dots.value].map((d) => d.days).sort((a, b) => a - b)
   const idx = Math.ceil(0.85 * sorted.length) - 1
-  return Math.round(sorted[idx] * 10) / 10
+  return Math.round(sorted[idx]! * 10) / 10
 })
 
 const yMax = computed(() => {
