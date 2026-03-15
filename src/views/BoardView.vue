@@ -313,6 +313,10 @@ const doneColName = computed(
   () => sortedColumns.value.filter((c) => !c.isBacklog).at(-1)?.name ?? null,
 )
 
+const todoColName = computed(
+  () => sortedColumns.value.filter((c) => !c.isBacklog).at(0)?.name ?? null,
+)
+
 const boardColumns = computed<Column[]>(() => {
   const t = chartViewDate.value
   const sprintStart = viewedSprintStart.value
@@ -343,6 +347,7 @@ const boardColumns = computed<Column[]>(() => {
     })
     if (!entry) continue
     if (entry.columnName === doneName && new Date(entry.enteredAt).getTime() < sprintStart) continue
+    if (entry.columnName === todoColName.value) continue // not worked on this sprint
     if (!colMap.has(entry.columnName)) colMap.set(entry.columnName, [])
     colMap.get(entry.columnName)!.push(card)
   }
