@@ -210,7 +210,7 @@ const sle50 = computed<number | null>(() => slePercentile(0.5))
 const sle85 = computed<number | null>(() => slePercentile(0.85))
 
 const yMax = computed(() => {
-  const max = Math.max(0, ...dots.value.map((d) => d.days))
+  const max = Math.max(0, ...dots.value.map((d) => d.days), sle50.value ?? 0, sle85.value ?? 0)
   if (max <= 5) return 5
   if (max <= 10) return 10
   if (max <= 20) return 20
