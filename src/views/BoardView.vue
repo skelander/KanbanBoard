@@ -133,7 +133,7 @@
           :columns="sortedColumns"
           :selectedCardId="selectedCardId ?? undefined"
           :viewDate="chartViewDate"
-          :historicalCycleTimes="historicalCycleTimes"
+          :historicalCycleTimes="isHistorical ? undefined : historicalCycleTimes"
           :showSle50="showSle50"
           :showSle85="showSle85"
           @select="toggleSelectedCard"
