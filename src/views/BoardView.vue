@@ -196,6 +196,7 @@
       <CycleTimeScatterPlot
         :columns="sortedColumns"
         :selectedCardId="selectedCardId ?? undefined"
+        :viewDate="chartViewDate"
         :showPct50="showCtPct50"
         :showPct85="showCtPct85"
         @select="toggleSelectedCard"
