@@ -68,6 +68,7 @@
 
         <span class="text-slate-200">|</span>
         <button @click="analysisOpen = !analysisOpen" class="text-sm px-3 py-1.5 rounded-lg hover:bg-slate-100 transition" :class="analysisOpen ? 'text-blue-600 font-medium' : 'text-slate-500 hover:text-slate-700'">Item Age chart</button>
+        <button @click="cycleOpen = !cycleOpen" class="text-sm px-3 py-1.5 rounded-lg hover:bg-slate-100 transition" :class="cycleOpen ? 'text-blue-600 font-medium' : 'text-slate-500 hover:text-slate-700'">Cycle time scatter plot</button>
 
         <template v-if="sprints.length > 0">
           <span class="text-slate-200">|</span>
@@ -173,6 +174,35 @@
       </div>
     </div>
 
+    <div v-if="cycleOpen" class="mx-5 mt-4 bg-white border border-slate-200 rounded-xl shrink-0">
+      <div class="px-4 pt-3 pb-2 border-b border-slate-100 flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-sm font-medium text-slate-700">Cycle Time Scatter Plot</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Elapsed time from leaving Backlog to Done — each dot is a completed item</p>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button
+            @click="showCtPct50 = !showCtPct50"
+            class="text-xs px-2 py-1 rounded-md border transition font-medium"
+            :class="showCtPct50 ? 'bg-purple-50 border-purple-300 text-purple-700' : 'bg-white border-slate-200 text-slate-400'"
+          >50%</button>
+          <button
+            @click="showCtPct85 = !showCtPct85"
+            class="text-xs px-2 py-1 rounded-md border transition font-medium"
+            :class="showCtPct85 ? 'bg-orange-50 border-orange-300 text-orange-600' : 'bg-white border-slate-200 text-slate-400'"
+          >85%</button>
+        </div>
+      </div>
+      <CycleTimeScatterPlot
+        :columns="sortedColumns"
+        :selectedCardId="selectedCardId ?? undefined"
+        :viewDate="chartViewDate"
+        :showPct50="showCtPct50"
+        :showPct85="showCtPct85"
+        @select="toggleSelectedCard"
+      />
+    </div>
+
     <div class="flex gap-4 p-5 overflow-x-auto flex-1 items-start">
       <KanbanColumn
         v-for="col in boardColumns"
@@ -195,6 +225,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { api, type Board, type Column, type Card, type User, type CardStateHistory } from '@/services/api'
 import KanbanColumn from '@/components/KanbanColumn.vue'
 import WorkItemAgeChart from '@/components/WorkItemAgeChart.vue'
+import CycleTimeScatterPlot from '@/components/CycleTimeScatterPlot.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -208,6 +239,9 @@ const allUsers = ref<User[]>([])
 const selectedUserId = ref<number | ''>('')
 
 const analysisOpen = ref(false)
+const cycleOpen = ref(false)
+const showCtPct50 = ref(true)
+const showCtPct85 = ref(true)
 const showSle50 = ref(true)
 const showSle85 = ref(true)
 const selectedCardId = ref<number | null>(null)
